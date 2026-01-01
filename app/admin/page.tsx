@@ -317,7 +317,7 @@ export default function AdminDashboard() {
                       className="w-full h-12"
                     >
                       <Plus className="w-5 h-5 mr-2" />
-                      Envoyer l'invitation
+                      Envoyer l&apos;invitation
                     </Button>
                   </div>
 

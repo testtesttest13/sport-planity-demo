@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 
@@ -24,8 +24,27 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=no_code`)
   }
 
+  const cookieStore = cookies()
+  const response = NextResponse.redirect(`${origin}/onboarding`)
+
   try {
-    const supabase = createClient()
+    // Create Supabase client with proper cookie handling for callback
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
     
     console.log('Exchanging code for session...')
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
@@ -67,13 +86,9 @@ export async function GET(request: Request) {
     console.log('Redirecting based on role:', role)
 
     // Redirect based on role
-    if (role === 'admin') {
-      return NextResponse.redirect(`${origin}/admin`)
-    } else if (role === 'coach') {
-      return NextResponse.redirect(`${origin}/coach`)
-    } else {
-      return NextResponse.redirect(`${origin}/`)
-    }
+    const finalUrl = role === 'admin' ? `${origin}/admin` : role === 'coach' ? `${origin}/coach` : origin
+    return NextResponse.redirect(finalUrl)
+    
   } catch (err) {
     console.error('Callback unexpected error:', err)
     return NextResponse.redirect(`${origin}/login?error=callback_exception&details=${encodeURIComponent(String(err))}`)

@@ -52,6 +52,7 @@ export default function LoginPage() {
         provider: 'google',
         options: {
           redirectTo: 'https://sport-planity-demo-jwbw.vercel.app/auth/callback',
+          skipBrowserRedirect: false,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -64,7 +65,11 @@ export default function LoginPage() {
         alert(`Erreur: ${error.message}`)
         setLoading(false)
       }
-      // Browser will redirect to Google, no need to do anything else
+      
+      // If we get here and there's a URL, redirect manually
+      if (data?.url) {
+        window.location.href = data.url
+      }
     } catch (err) {
       console.error('Unexpected error:', err)
       setLoading(false)

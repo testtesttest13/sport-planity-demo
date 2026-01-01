@@ -35,6 +35,7 @@ export default function EditAccountPage() {
     if (user) {
       loadProfile()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading, router])
 
   const loadProfile = async () => {

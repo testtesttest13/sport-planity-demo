@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, User, Briefcase, Building } from 'lucide-react'
@@ -15,8 +15,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [mode, setMode] = useState<'signin' | 'signup'>('signup')
   const supabase = createClient()
+  
+  // Check for auth errors in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const error = params.get('error')
+    if (error) {
+      console.error('Auth error:', error)
+      if (error === 'auth_error') {
+        alert('❌ Erreur d\'authentification. Veuillez réessayer.')
+      }
+    }
+  }, [])
 
   const handleGoogleLogin = async () => {
     setLoading(true)

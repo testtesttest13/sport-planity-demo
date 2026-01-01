@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -9,27 +9,20 @@ import { Search, MapPin, ChevronRight, Star, Users, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useStore } from '@/lib/store'
-import { loginAsClient, loginAsCoach, loginAsAdmin } from '@/lib/store'
+import { useAuth } from '@/components/providers/auth-provider'
 import { mockClubs } from '@/lib/mock-data'
 
 export default function HomePage() {
   const router = useRouter()
-  const { currentUser } = useStore()
+  const { user, loading } = useAuth()
   const [searchCity, setSearchCity] = useState('')
-
-  const handleDemoLogin = (role: 'client' | 'coach' | 'admin') => {
-    if (role === 'client') {
-      loginAsClient()
-      router.push('/')
-    } else if (role === 'coach') {
-      loginAsCoach()
-      router.push('/coach')
-    } else if (role === 'admin') {
-      loginAsAdmin()
-      router.push('/admin')
+  
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
     }
-  }
+  }, [user, loading, router])
 
   const handleSearch = () => {
     if (searchCity.trim()) {
@@ -48,6 +41,23 @@ export default function HomePage() {
   }
 
   const featuredClubs = mockClubs.slice(0, 3)
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If not authenticated, will redirect to login
+  if (!user) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
@@ -258,51 +268,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Login Section - Only if not logged in */}
-      {!currentUser && (
-        <section className="py-20 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-          <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-4xl font-bold mb-6">Commencez dès maintenant</h2>
-              <p className="text-xl text-blue-100 mb-8">
-                Rejoignez des milliers de sportifs qui progressent chaque jour
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  onClick={() => handleDemoLogin('client')}
-                  size="lg"
-                  className="bg-white text-blue-600 hover:bg-gray-100"
-                >
-                  👤 Se connecter comme Client
-                </Button>
-                <Button
-                  onClick={() => handleDemoLogin('coach')}
-                  size="lg"
-                  variant="outline"
-                  className="border-white text-white hover:bg-white/10"
-                >
-                  🎾 Se connecter comme Coach
-                </Button>
-                <Button
-                  onClick={() => handleDemoLogin('admin')}
-                  size="lg"
-                  variant="outline"
-                  className="border-white text-white hover:bg-white/10"
-                >
-                  🏢 Se connecter comme Admin
-                </Button>
-              </div>
-              <p className="text-sm text-blue-200 mt-6">
-                💡 Mode démo - Testez toutes les fonctionnalités sans inscription
-              </p>
-            </motion.div>
-          </div>
-        </section>
-      )}
     </div>
   )
 }

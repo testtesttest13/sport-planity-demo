@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const { email, clubId, role } = await request.json()
 
     // Get current user session
-    const supabase = await createClient()
+    const supabase = createClient()
     const {
       data: { user },
       error: authError,
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
     try {
       await resend.emails.send({
-        from: 'Sport Planity <onboarding@sportplanity.com>',
+        from: 'Sport Planity <onboarding@resend.dev>',
         to: email,
         subject: `Invitation à rejoindre ${club.name}`,
         html: `

@@ -35,11 +35,38 @@ export default function AdminDashboard() {
   const club = mockClubs.find((c) => c.id === currentUser.clubId)
   const clubBookings = bookings.filter((b) => b.clubId === currentUser.clubId)
 
-  const handleSendInvite = () => {
-    if (inviteEmail) {
-      // Simulate sending invite
-      alert(`Invitation envoyée à ${inviteEmail}`)
-      setInviteEmail('')
+  const handleSendInvite = async () => {
+    if (!inviteEmail) return
+    
+    setInviteEmail('')
+    
+    try {
+      const response = await fetch('/api/invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: inviteEmail,
+          clubId: currentUser.clubId,
+          role: 'coach',
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        if (data.demo) {
+          alert(`✅ Invitation créée !\n\n📧 Email non envoyé (mode démo)\n🔗 Lien : ${data.inviteLink}`)
+        } else {
+          alert(`✅ Invitation envoyée à ${inviteEmail} !\n\nLe coach recevra un email avec un lien d'inscription.`)
+        }
+      } else {
+        alert(`❌ Erreur : ${data.error}`)
+      }
+    } catch (error) {
+      console.error('Error sending invite:', error)
+      alert('❌ Erreur lors de l\'envoi de l\'invitation')
     }
   }
 

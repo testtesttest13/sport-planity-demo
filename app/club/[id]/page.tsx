@@ -35,7 +35,7 @@ export default function ClubPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Club non trouvé</h1>
           <Link href="/">
-            <Button>Retour à l'accueil</Button>
+            <Button>Retour à l&apos;accueil</Button>
           </Link>
         </div>
       </div>

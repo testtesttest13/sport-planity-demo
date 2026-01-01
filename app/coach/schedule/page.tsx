@@ -29,18 +29,20 @@ const TIME_SLOTS = [
 export default function CoachSchedulePage() {
   const router = useRouter()
   const { currentUser } = useStore()
+  const coach = mockCoaches.find((c) => c.id === currentUser?.coachId)
   
+  // All hooks must be at the top before any conditions
+  const [schedule, setSchedule] = useState<DaySchedule[]>(coach?.weeklySchedule || [])
+  const [selectedDay, setSelectedDay] = useState<number>(1)
+  const [hasChanges, setHasChanges] = useState(false)
+  
+  // Early returns after all hooks
   if (!currentUser || currentUser.role !== 'coach') {
     router.push('/')
     return null
   }
 
-  const coach = mockCoaches.find((c) => c.id === currentUser.coachId)
   if (!coach) return null
-
-  const [schedule, setSchedule] = useState<DaySchedule[]>(coach.weeklySchedule)
-  const [selectedDay, setSelectedDay] = useState<number>(1)
-  const [hasChanges, setHasChanges] = useState(false)
 
   const currentDaySchedule = schedule.find((s) => s.day === selectedDay)
   const currentSlots = currentDaySchedule?.slots || []

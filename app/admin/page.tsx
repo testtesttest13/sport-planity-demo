@@ -68,7 +68,7 @@ export default function AdminDashboard() {
             <div className="flex-1">
               <h1 className="text-3xl font-bold mb-2">{club.name}</h1>
               <p className="text-indigo-100 text-lg">
-                Panneau d'Administration
+                Panneau d&apos;Administration
               </p>
               <p className="text-indigo-100">Directeur: {currentUser.name}</p>
             </div>
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="max-w-md space-y-6">
                   <p className="text-gray-600">
-                    Envoyez un lien d'invitation magique pour ajouter un nouveau coach à
+                    Envoyez un lien d&apos;invitation magique pour ajouter un nouveau coach à
                     votre équipe.
                   </p>
                   

@@ -321,8 +321,8 @@ export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDr
                   </Button>
 
                   <p className="text-xs text-center text-gray-500 px-4">
-                    En confirmant, vous acceptez les conditions d'utilisation et la
-                    politique d'annulation
+                    En confirmant, vous acceptez les conditions d&apos;utilisation et la
+                    politique d&apos;annulation
                   </p>
                 </motion.div>
               )}

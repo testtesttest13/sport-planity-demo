@@ -2,13 +2,13 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
-import { BottomNav } from "@/components/bottom-nav"
-import { DemoSwitcher } from "@/components/demo-switcher"
-import { AuthProvider } from "@/components/providers/auth-provider"
+import { ClientLayout } from "@/components/client-layout"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+export const revalidate = 0
 
 export const metadata: Metadata = {
   title: "Sport Planity - Réservez votre coach",
@@ -23,11 +23,7 @@ export default function RootLayout({
   return (
     <html lang="fr" className="scroll-smooth">
       <body className={cn(inter.className, "antialiased")}>
-        <AuthProvider>
-          {children}
-          <BottomNav />
-          <DemoSwitcher />
-        </AuthProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )

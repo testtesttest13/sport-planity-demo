@@ -85,7 +85,7 @@ export default function LoginPage() {
         email,
         password,
         options: {
-          emailRedirectTo: 'https://sport-planity-demo-jwbw.vercel.app/auth/callback',
+          emailRedirectTo: 'https://sport-planity-demo-jwbw.vercel.app/onboarding',
           data: {
             full_name: email.split('@')[0],
             role: 'client',
@@ -96,8 +96,14 @@ export default function LoginPage() {
       if (error) {
         alert(`Erreur: ${error.message}`)
       } else if (data.user) {
-        alert('✅ Compte créé ! Vérifiez votre email pour confirmer votre inscription.')
-        setMode('signin')
+        // Check if email confirmation is required
+        if (data.session) {
+          // Auto-confirmed, redirect to onboarding
+          router.push('/onboarding')
+        } else {
+          // Email confirmation required
+          alert('✅ Compte créé ! Vérifiez votre email pour confirmer votre inscription.')
+        }
       }
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -108,14 +114,20 @@ export default function LoginPage() {
       if (error) {
         alert(`Erreur: ${error.message}`)
       } else if (data.user) {
-        // Get user role from profile
+        // Check if user has completed onboarding
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, full_name')
           .eq('id', data.user.id)
           .single()
 
-        const role = profile?.role || 'client'
+        // If no profile or incomplete, go to onboarding
+        if (!profile || !profile.full_name || profile.full_name.includes('@')) {
+          router.push('/onboarding')
+          return
+        }
+
+        const role = profile.role || 'client'
         
         // Redirect based on role
         if (role === 'admin') {

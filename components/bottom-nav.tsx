@@ -2,15 +2,35 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Search, Calendar, Inbox, User, Home } from 'lucide-react'
-import { useStore } from '@/lib/store'
+import { Search, Calendar, Inbox, User, Home, LogIn } from 'lucide-react'
+import { useAuth } from '@/components/providers/auth-provider'
 import { cn } from '@/lib/utils'
 
 export function BottomNav() {
   const pathname = usePathname()
-  const { currentUser } = useStore()
+  const { user } = useAuth()
 
-  if (!currentUser) return null
+  // Don't show on login/onboarding pages
+  if (pathname === '/login' || pathname === '/onboarding') return null
+
+  // If not logged in, show login/signup nav
+  if (!user) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-bottom">
+        <div className="max-w-lg mx-auto px-2">
+          <div className="flex items-center justify-around h-16">
+            <Link
+              href="/login"
+              className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-xl transition-all active:scale-95 min-w-[100px] text-blue-600"
+            >
+              <LogIn className="w-6 h-6 stroke-[2.5px]" />
+              <span className="text-xs font-semibold">Connexion</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
+    )
+  }
 
   // Client navigation
   const clientNav = [
@@ -33,10 +53,13 @@ export function BottomNav() {
     { href: '/account', icon: User, label: 'Compte' },
   ]
 
+  // Get user role from Supabase (will be in user metadata or we default to client)
+  const userRole = (user.user_metadata?.role as string) || 'client'
+  
   const navItems =
-    currentUser.role === 'coach'
+    userRole === 'coach'
       ? coachNav
-      : currentUser.role === 'admin'
+      : userRole === 'admin'
       ? adminNav
       : clientNav
 

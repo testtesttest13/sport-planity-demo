@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import Image from 'next/image'
 
-type OnboardingStep = 1 | 2 | 3 | 4
+type OnboardingStep = 1 | 2 | 3
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -22,7 +22,6 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<OnboardingStep>(1)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [sport, setSport] = useState<'tennis' | 'padel' | 'equitation' | ''>('')
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -81,8 +80,8 @@ export default function OnboardingPage() {
         return
       }
 
-      // Redirect to home
-      router.push('/')
+      // Redirect to account page
+      router.push('/account')
     } catch (error) {
       console.error('Onboarding error:', error)
       alert('Une erreur est survenue')
@@ -93,7 +92,6 @@ export default function OnboardingPage() {
   const canContinue = () => {
     if (step === 1) return firstName.trim().length > 0
     if (step === 2) return lastName.trim().length > 0
-    if (step === 3) return sport !== ''
     return true
   }
 
@@ -123,7 +121,7 @@ export default function OnboardingPage() {
             <motion.div
               className="h-full bg-gradient-to-r from-blue-500 to-indigo-500"
               initial={{ width: '0%' }}
-              animate={{ width: `${(step / 4) * 100}%` }}
+              animate={{ width: `${(step / 3) * 100}%` }}
               transition={{ duration: 0.3 }}
             />
           </div>
@@ -132,19 +130,17 @@ export default function OnboardingPage() {
             {/* Header */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white mb-4">
-                <span className="text-2xl font-bold">{step}/4</span>
+                <span className="text-2xl font-bold">{step}/3</span>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 {step === 1 && 'Bienvenue ! 👋'}
                 {step === 2 && 'Enchanté ! 😊'}
-                {step === 3 && 'Votre sport 🎾'}
-                {step === 4 && 'Photo de profil 📸'}
+                {step === 3 && 'Photo de profil 📸'}
               </h1>
               <p className="text-gray-600">
                 {step === 1 && 'Commençons par votre prénom'}
                 {step === 2 && 'Et votre nom de famille ?'}
-                {step === 3 && 'Quel sport pratiquez-vous ?'}
-                {step === 4 && 'Ajoutez une photo (facultatif)'}
+                {step === 3 && 'Ajoutez une photo (facultatif)'}
               </p>
             </div>
 
@@ -211,85 +207,8 @@ export default function OnboardingPage() {
                 </motion.div>
               )}
 
-              {/* Step 3: Sport */}
+              {/* Step 3: Photo */}
               {step === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-4"
-                >
-                  <button
-                    onClick={() => setSport('tennis')}
-                    className={`w-full p-6 rounded-2xl border-2 transition-all active:scale-95 ${
-                      sport === 'tennis'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white text-2xl">
-                        🎾
-                      </div>
-                      <div className="text-left flex-1">
-                        <p className="font-bold text-lg">Tennis</p>
-                        <p className="text-sm text-gray-600">Le sport de raquette classique</p>
-                      </div>
-                      {sport === 'tennis' && (
-                        <Check className="w-6 h-6 text-blue-600" />
-                      )}
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => setSport('padel')}
-                    className={`w-full p-6 rounded-2xl border-2 transition-all active:scale-95 ${
-                      sport === 'padel'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-2xl">
-                        🏓
-                      </div>
-                      <div className="text-left flex-1">
-                        <p className="font-bold text-lg">Padel</p>
-                        <p className="text-sm text-gray-600">Le sport tendance du moment</p>
-                      </div>
-                      {sport === 'padel' && (
-                        <Check className="w-6 h-6 text-blue-600" />
-                      )}
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => setSport('equitation')}
-                    className={`w-full p-6 rounded-2xl border-2 transition-all active:scale-95 ${
-                      sport === 'equitation'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-2xl">
-                        🏇
-                      </div>
-                      <div className="text-left flex-1">
-                        <p className="font-bold text-lg">Équitation</p>
-                        <p className="text-sm text-gray-600">L&apos;art de monter à cheval</p>
-                      </div>
-                      {sport === 'equitation' && (
-                        <Check className="w-6 h-6 text-blue-600" />
-                      )}
-                    </div>
-                  </button>
-                </motion.div>
-              )}
-
-              {/* Step 4: Photo */}
-              {step === 4 && (
                 <motion.div
                   key="step4"
                   initial={{ opacity: 0, x: 20 }}
@@ -335,7 +254,7 @@ export default function OnboardingPage() {
                     <p className="text-sm text-green-900 text-center">
                       <strong>✨ Presque terminé !</strong>
                       <br />
-                      {firstName} {lastName}, passionné de {sport === 'tennis' ? 'tennis' : sport === 'padel' ? 'padel' : 'équitation'}
+                      {firstName} {lastName}
                     </p>
                   </div>
                 </motion.div>
@@ -357,7 +276,7 @@ export default function OnboardingPage() {
                 </Button>
               )}
 
-              {step < 4 ? (
+              {step < 3 ? (
                 <Button
                   onClick={() => setStep((step + 1) as OnboardingStep)}
                   disabled={!canContinue()}
@@ -390,7 +309,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Skip button on photo step */}
-            {step === 4 && !uploading && (
+            {step === 3 && !uploading && (
               <button
                 onClick={handleComplete}
                 className="w-full mt-4 text-sm text-gray-600 hover:text-gray-900 font-medium"
@@ -403,7 +322,7 @@ export default function OnboardingPage() {
 
         {/* Step Indicators */}
         <div className="flex justify-center gap-2 mt-6">
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3].map((s) => (
             <div
               key={s}
               className={`h-2 rounded-full transition-all ${

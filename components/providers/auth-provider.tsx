@@ -19,9 +19,18 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [mounted, setMounted] = useState(false)
+
+  // Only initialize after client-side hydration
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
+    if (!mounted) return
+
+    const supabase = createClient()
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
@@ -37,9 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [mounted])
 
   const signOut = async () => {
+    if (!mounted) return
+    const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/login'
   }

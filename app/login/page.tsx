@@ -22,11 +22,25 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const error = params.get('error')
+    const details = params.get('details')
+    
     if (error) {
-      console.error('Auth error:', error)
-      if (error === 'auth_error') {
-        alert('❌ Erreur d\'authentification. Veuillez réessayer.')
+      console.error('Auth error:', error, details)
+      
+      const errorMessages: Record<string, string> = {
+        'auth_error': 'Erreur d\'authentification',
+        'exchange_failed': 'Échec de l\'échange de code',
+        'no_code': 'Code manquant',
+        'no_user': 'Utilisateur non trouvé',
+        'callback_failed': 'Erreur dans le callback',
+        'callback_exception': 'Exception dans le callback',
       }
+      
+      const message = errorMessages[error] || 'Erreur inconnue'
+      alert(`❌ ${message}${details ? '\n\nDétails: ' + details : ''}`)
+      
+      // Clean URL
+      window.history.replaceState({}, '', '/login')
     }
   }, [])
 

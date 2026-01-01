@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend only when needed (not at build time)
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export async function POST(request: Request) {
   try {
@@ -68,6 +74,18 @@ export async function POST(request: Request) {
     // Send email via Resend
     const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/accept?token=${token}`
 
+    const resend = getResendClient()
+
+    if (!resend) {
+      // No Resend key configured, return demo mode
+      return NextResponse.json({
+        success: true,
+        message: 'Invitation créée (email désactivé en démo)',
+        demo: true,
+        inviteLink,
+      })
+    }
+
     try {
       await resend.emails.send({
         from: 'Sport Planity <onboarding@resend.dev>',
@@ -129,17 +147,6 @@ export async function POST(request: Request) {
       })
     } catch (emailError) {
       console.error('Email sending error:', emailError)
-      
-      // If Resend fails (no API key), still return success for demo
-      if (!process.env.RESEND_API_KEY) {
-        return NextResponse.json({
-          success: true,
-          message: 'Invitation créée (email désactivé en démo)',
-          demo: true,
-          inviteLink, // Return link for demo purposes
-        })
-      }
-
       return NextResponse.json(
         { error: 'Failed to send email' },
         { status: 500 }

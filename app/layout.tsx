@@ -8,6 +8,8 @@ import { AuthProvider } from "@/components/providers/auth-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: "Sport Planity - Réservez votre coach",
   description: "La plateforme premium pour réserver vos cours de tennis, padel et équitation",

@@ -8,6 +8,8 @@ const nextConfig = {
       },
     ],
   },
+  // Disable static page generation to avoid build-time Supabase calls
+  output: 'standalone',
 }
 
 module.exports = nextConfig

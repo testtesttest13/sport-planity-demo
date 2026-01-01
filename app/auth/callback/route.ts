@@ -4,19 +4,24 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const origin = requestUrl.origin
+  const origin = 'https://sport-planity-demo-jwbw.vercel.app'
 
   if (code) {
     const supabase = createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // Get user role from profile
+      // Check if user has completed onboarding
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, full_name')
         .eq('id', data.user.id)
         .single()
+
+      // If no full_name, redirect to onboarding
+      if (!profile || !profile.full_name || profile.full_name === data.user.email) {
+        return NextResponse.redirect(`${origin}/onboarding`)
+      }
 
       const role = profile?.role || 'client'
 

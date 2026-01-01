@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   User,
@@ -17,6 +18,7 @@ import {
   Bell,
   CreditCard,
   Settings,
+  Edit,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -89,11 +91,21 @@ export default function AccountPage() {
             </AvatarFallback>
           </Avatar>
           <h1 className="text-2xl font-bold mb-1">{currentUser.name}</h1>
-          <p className="text-indigo-100">
+          <p className="text-indigo-100 mb-4">
             {currentUser.role === 'client' && 'Client'}
             {currentUser.role === 'coach' && 'Coach professionnel'}
             {currentUser.role === 'admin' && 'Administrateur'}
           </p>
+          <Link href="/account/edit">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Modifier mon profil
+            </Button>
+          </Link>
         </motion.div>
       </div>
 

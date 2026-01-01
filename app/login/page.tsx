@@ -20,19 +20,27 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `https://sport-planity-demo-jwbw.vercel.app/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://sport-planity-demo-jwbw.vercel.app/auth/callback',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
-      },
-    })
+      })
 
-    if (error) {
-      alert(`Erreur: ${error.message}`)
+      if (error) {
+        console.error('Google OAuth error:', error)
+        alert(`Erreur: ${error.message}`)
+        setLoading(false)
+      }
+      // Browser will redirect to Google, no need to do anything else
+    } catch (err) {
+      console.error('Unexpected error:', err)
       setLoading(false)
     }
   }
@@ -46,6 +54,7 @@ export default function LoginPage() {
         email,
         password,
         options: {
+          emailRedirectTo: 'https://sport-planity-demo-jwbw.vercel.app/auth/callback',
           data: {
             full_name: email.split('@')[0],
             role: 'client',
@@ -56,7 +65,7 @@ export default function LoginPage() {
       if (error) {
         alert(`Erreur: ${error.message}`)
       } else if (data.user) {
-        alert('Compte créé ! Vérifiez votre email pour confirmer.')
+        alert('✅ Compte créé ! Vérifiez votre email pour confirmer votre inscription.')
         setMode('signin')
       }
     } else {
@@ -190,7 +199,7 @@ export default function LoginPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              S&apos;inscrire avec Google
+              {mode === 'signup' ? "S'inscrire avec Google" : 'Se connecter avec Google'}
             </Button>
 
             <div className="relative">
@@ -298,17 +307,17 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full h-12"
               >
-                {mode === 'signin' ? 'Se connecter' : 'Créer un compte'}
+                {mode === 'signin' ? 'Se connecter' : "S'inscrire"}
               </Button>
 
               <button
                 type="button"
                 onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-                className="w-full text-sm text-gray-600 hover:text-gray-900"
+                className="w-full text-sm text-gray-600 hover:text-gray-900 font-medium"
               >
                 {mode === 'signin'
-                  ? 'Pas encore de compte ? Inscrivez-vous'
-                  : 'Déjà un compte ? Connectez-vous'}
+                  ? "Pas encore de compte ? S'inscrire"
+                  : 'Déjà un compte ? Se connecter'}
               </button>
             </form>
           </CardContent>

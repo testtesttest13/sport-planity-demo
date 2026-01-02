@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import Image from 'next/image'
+import { toast } from 'sonner'
 
 export default function EditAccountPage() {
   const router = useRouter()
@@ -43,7 +44,7 @@ export default function EditAccountPage() {
 
     const { data } = await supabase
       .from('profiles')
-      .select('full_name, phone, avatar_url')
+      .select('full_name, phone, avatar_url, sport, discovery_source')
       .eq('id', user.id)
       .single()
 
@@ -100,14 +101,18 @@ export default function EditAccountPage() {
         .eq('id', user.id)
 
       if (error) {
-        alert(`Erreur: ${error.message}`)
+        toast.error('Erreur', {
+          description: error.message,
+        })
       } else {
-        alert('✅ Profil mis à jour avec succès !')
+        toast.success('Profil mis à jour !', {
+          description: 'Vos modifications ont été enregistrées.',
+        })
         router.push('/account')
       }
     } catch (error) {
       console.error('Save error:', error)
-      alert('Une erreur est survenue')
+      toast.error('Une erreur est survenue')
     }
 
     setSaving(false)
@@ -115,12 +120,12 @@ export default function EditAccountPage() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert('Les mots de passe ne correspondent pas')
+      toast.error('Les mots de passe ne correspondent pas')
       return
     }
 
     if (newPassword.length < 6) {
-      alert('Le mot de passe doit contenir au moins 6 caractères')
+      toast.error('Le mot de passe doit contenir au moins 6 caractères')
       return
     }
 
@@ -131,9 +136,13 @@ export default function EditAccountPage() {
     })
 
     if (error) {
-      alert(`Erreur: ${error.message}`)
+      toast.error('Erreur', {
+        description: error.message,
+      })
     } else {
-      alert('✅ Mot de passe changé avec succès !')
+      toast.success('Mot de passe changé !', {
+        description: 'Votre mot de passe a été mis à jour avec succès.',
+      })
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')

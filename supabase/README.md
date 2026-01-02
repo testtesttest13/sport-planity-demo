@@ -1,118 +1,71 @@
-# 🚀 Supabase Setup - Instructions
+# Scripts SQL Supabase
 
-## ⚡ Étape 1 : Exécuter le script SQL
+## Fichiers disponibles
 
-### Si c'est votre PREMIÈRE fois :
-Utilisez le fichier `setup.sql`
+### `update_schema.sql`
+Script principal pour mettre à jour le schéma de la base de données :
+- Ajoute les colonnes nécessaires (join_code, siret, amenities, etc.)
+- Configure les politiques RLS pour toutes les tables
 
-### Si vous avez déjà essayé et eu une erreur :
-Utilisez le fichier `reset-and-setup.sql` ✅ **(RECOMMANDÉ)**
+### `clear-availability.sql`
+**Utilise ce script pour nettoyer toutes les disponibilités et recommencer à zéro.**
 
----
+Supprime toutes les entrées de `coach_availability` pour que tu puisses recréer tes disponibilités depuis le début.
 
-## 📋 Comment faire :
+### `fix-coach-availability-rls.sql`
+**Utilise ce script si tu as des erreurs RLS lors de la sauvegarde des disponibilités coach.**
 
-1. **Ouvrez votre dashboard Supabase** :
-   https://supabase.com/dashboard/project/ivzvjwqvqvunkiyyyrub
+Corrige les politiques RLS pour `coach_availability` en vérifiant correctement que le coach appartient à l'utilisateur via la table `coaches`.
 
-2. **Cliquez sur "SQL Editor"** dans le menu de gauche
+### `add-payment-method.sql`
+**Ajoute la colonne `payment_method` à la table `bookings`.**
 
-3. **Cliquez sur "New Query"**
-
-4. **Copiez TOUT le contenu** de `reset-and-setup.sql`
-   - Ouvrez le fichier dans VS Code
-   - Sélectionnez tout (Cmd/Ctrl + A)
-   - Copiez (Cmd/Ctrl + C)
-
-5. **Collez dans le SQL Editor** de Supabase
-   - Cliquez dans l'éditeur
-   - Collez (Cmd/Ctrl + V)
-
-6. **Cliquez sur "Run"** (ou appuyez sur Cmd/Ctrl + Enter)
-
-7. **Attendez le message de succès** :
-   ```
-   Database setup completed successfully! 🎉
-   ```
+Permet de stocker la méthode de paiement choisie par le client lors de la réservation ('on_site' pour sur place, 'online' pour en ligne).
 
 ---
 
-## ✅ Ce qui sera créé
+## Comment utiliser
 
-### Tables (7)
-- `clubs` - Les clubs de sport
-- `profiles` - Profils utilisateurs
-- `coaches` - Données des coachs
-- `coach_availability` - Planning hebdomadaire
-- `bookings` - Réservations
-- `invitations` - Invitations en attente
-- `reviews` - Avis clients
-
-### Sécurité
-- Row Level Security (RLS) activée
-- Policies pour chaque rôle
-- Protection automatique des données
-
-### Automatisations
-- Création auto du profil à l'inscription
-- Mise à jour auto des timestamps
-- Storage pour les avatars
-
-### Données de test
-- 1 club démo (Country Club Lyon)
+1. Ouvrir **Supabase Dashboard > SQL Editor**
+2. Copier/coller le contenu du script souhaité
+3. Cliquer sur **Run**
 
 ---
 
-## 🔍 Vérifier que ça a marché
+## Nouveau flow d'onboarding
 
-Dans Supabase Dashboard :
+L'onboarding demande maintenant à l'utilisateur son rôle :
 
-1. **Allez dans "Table Editor"**
-2. Vous devriez voir 7 tables :
-   - clubs ✅
-   - profiles ✅
-   - coaches ✅
-   - coach_availability ✅
-   - bookings ✅
-   - invitations ✅
-   - reviews ✅
+### 1. Élève (Client)
+- Prénom/Nom
+- Sport favori
+- Source de découverte
+- → Redirige vers l'accueil
 
-3. **Cliquez sur `clubs`**
-4. Vous devriez voir 1 ligne : "Country Club Lyon"
+### 2. Coach
+- Entre un code à 5 caractères
+- Le code correspond à un club
+- → Redirige vers le dashboard coach
 
----
-
-## ❌ En cas d'erreur
-
-### Erreur : "policy already exists"
-➡️ Utilisez `reset-and-setup.sql` au lieu de `setup.sql`
-
-### Erreur : "permission denied"
-➡️ Vérifiez que vous êtes bien connecté à votre projet Supabase
-
-### Erreur : "syntax error"
-➡️ Assurez-vous d'avoir copié **TOUT** le fichier (du début à la fin)
+### 3. Admin (Créateur de club)
+- Prénom/Nom
+- Infos club (nom, adresse, SIRET)
+- Équipements (badges)
+- Photo + description
+- → Génère un code à 5 caractères pour les coachs
+- → Redirige vers le dashboard admin
 
 ---
 
-## 🎯 Après le setup
+## Codes de club
 
-Retournez sur votre app :
-```
-http://localhost:3000/login
-```
-
-Testez un compte démo :
-- Cliquez sur "Sophie (Cliente)"
-- Le compte sera créé automatiquement
-- Vous serez connecté !
+Chaque club a un `join_code` unique de 5 caractères (ex: "AB123").
+Les coachs utilisent ce code pour rejoindre un club lors de l'onboarding.
 
 ---
 
-## 📚 Fichiers
+## Gestion des réservations annulées
 
-- `setup.sql` - Version originale (première installation)
-- `reset-and-setup.sql` - Version safe (peut être exécuté plusieurs fois)
-
-**Utilisez `reset-and-setup.sql` si vous avez le moindre doute !**
-
+✅ Les réservations annulées (status = 'cancelled') n'apparaissent plus dans les créneaux disponibles.
+✅ Quand un coach ou un client annule une réservation, le créneau redevient automatiquement disponible.
+✅ Le système utilise `.neq('status', 'cancelled')` pour exclure les réservations annulées de la liste des créneaux occupés.

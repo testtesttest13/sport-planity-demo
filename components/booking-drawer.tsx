@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Drawer } from 'vaul'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
-import { format, addDays, startOfWeek, isSameDay } from 'date-fns'
+import { format, addDays, isSameDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Calendar, Clock, CreditCard, X, ChevronLeft, Check } from 'lucide-react'
+import { Calendar, Clock, CreditCard, X, ChevronLeft, Check, Wallet, Store } from 'lucide-react'
 import { Coach } from '@/types'
 import { Button } from '@/components/ui/button'
-import { useStore } from '@/lib/store'
-import { format as formatDate } from 'date-fns'
+import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/auth-provider'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface BookingDrawerProps {
   coach: Coach | null
@@ -22,75 +23,247 @@ interface BookingDrawerProps {
 
 type BookingStep = 'date-time' | 'confirmation' | 'success'
 
+// Helper function to format time from "14:00:00" to "14h"
+function formatTime(timeSlot: string): string {
+  const [hours] = timeSlot.split(':')
+  return `${hours}h`
+}
+
 export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDrawerProps) {
   const [step, setStep] = useState<BookingStep>('date-time')
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [availableSlots, setAvailableSlots] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [bookedSlots, setBookedSlots] = useState<string[]>([])
+  const [paymentMethod, setPaymentMethod] = useState<'on_site' | 'online'>('on_site')
   
-  const { addBooking, currentUser, bookings } = useStore()
+  const { user } = useAuth()
+  const supabase = createClient()
 
   // Generate next 7 days starting from today
   const today = new Date()
   const dates = Array.from({ length: 7 }, (_, i) => addDays(today, i))
 
-  // Get available slots for selected date (excluding booked ones and past times)
-  const getAvailableSlots = () => {
-    if (!coach) return []
-    const dayOfWeek = selectedDate.getDay()
-    const schedule = coach.weeklySchedule.find((s) => s.day === dayOfWeek)
-    const allSlots = schedule?.slots || []
-    
-    // Filter out booked slots
-    const dateStr = format(selectedDate, 'yyyy-MM-dd')
-    const bookedSlots = bookings
-      .filter(
-        (b) =>
-          b.coachId === coach.id &&
-          format(new Date(b.date), 'yyyy-MM-dd') === dateStr &&
-          b.status !== 'cancelled'
-      )
-      .map((b) => b.time)
-    
-    // Filter out past time slots if it's today
-    const now = new Date()
-    const isToday = format(selectedDate, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')
-    
-    let availableSlots = allSlots.filter((slot) => !bookedSlots.includes(slot))
-    
-    if (isToday) {
-      const currentHour = now.getHours()
-      const currentMinute = now.getMinutes()
-      
-      availableSlots = availableSlots.filter((slot) => {
-        const [slotHour, slotMinute] = slot.split(':').map(Number)
-        // Keep slot only if it's at least 1 hour in the future
-        if (slotHour > currentHour + 1) return true
-        if (slotHour === currentHour + 1 && slotMinute >= currentMinute) return true
-        return false
-      })
-    }
-    
-    return availableSlots
+  // Convert JavaScript day (0=Sunday, 1=Monday...) to SQL day (1=Monday, 2=Tuesday...)
+  const jsDayToSqlDay = (jsDay: number): number => {
+    return jsDay === 0 ? 7 : jsDay // Sunday 0 -> 7, Monday 1 -> 1, etc.
   }
 
-  const availableSlots = getAvailableSlots()
+  // Load available slots from coach_availability and booked slots from bookings
+  useEffect(() => {
+    async function loadSlots() {
+      if (!coach || !open) return
 
-  const handleConfirmBooking = () => {
-    if (!coach || !selectedTime) return
+      const jsDay = selectedDate.getDay()
+      const sqlDay = jsDayToSqlDay(jsDay) // Convert to SQL format (1=Monday, 7=Sunday)
+      const dateStr = format(selectedDate, 'yyyy-MM-dd')
 
-    const booking = {
-      id: `booking-${Date.now()}`,
-      coachId: coach.id,
-      clubId: coach.clubId,
-      date: selectedDate.toISOString(),
-      time: selectedTime,
-      clientName: currentUser?.name || 'Client',
-      status: 'confirmed' as const,
-      totalPrice: coach.hourlyRate,
+      try {
+        // Load coach availability for this day
+        // IMPORTANT: coach_id in coach_availability refers to coaches.id (not profile_id)
+        const { data: availability, error: availabilityError } = await supabase
+          .from('coach_availability')
+          .select('time_slot')
+          .eq('coach_id', coach.id) // coach.id is coaches.id from club page
+          .eq('day_of_week', sqlDay) // Use SQL day format (1=Monday, 7=Sunday)
+          .eq('is_available', true)
+
+        if (availabilityError) {
+          console.error('Error loading availability:', availabilityError)
+          console.error('Coach ID used:', coach.id)
+          console.error('SQL Day used:', sqlDay)
+        } else {
+          console.log('Availability loaded:', availability?.length || 0, 'slots for day', sqlDay, 'coach', coach.id)
+        }
+
+        // Load booked slots for this date
+        const { data: bookings, error: bookingsError } = await supabase
+          .from('bookings')
+          .select('time_slot')
+          .eq('coach_id', coach.id)
+          .eq('booking_date', dateStr)
+          .neq('status', 'cancelled')
+
+        if (bookingsError) {
+          console.error('Error loading bookings:', bookingsError)
+        }
+
+        // Get available time slots - normalize format (remove seconds if present)
+        const allSlots = (availability || []).map((a: any) => {
+          const time = a.time_slot
+          // Normalize: "14:00:00" -> "14:00", "14:00" -> "14:00"
+          return time.length > 5 ? time.substring(0, 5) : time
+        })
+        const booked = (bookings || []).map((b: any) => {
+          const time = b.time_slot
+          // Normalize: "14:00:00" -> "14:00", "14:00" -> "14:00"
+          return time.length > 5 ? time.substring(0, 5) : time
+        })
+        setBookedSlots(booked)
+
+        // Filter out booked slots (normalized comparison)
+        let slots = allSlots.filter((slot: string) => !booked.includes(slot))
+
+        // Filter out past time slots if it's today
+        const now = new Date()
+        const isToday = format(selectedDate, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd')
+
+        if (isToday) {
+          const currentHour = now.getHours()
+          const currentMinute = now.getMinutes()
+
+          slots = slots.filter((slot: string) => {
+            const [slotHour, slotMinute] = slot.split(':').map(Number)
+            // Keep slot only if it's at least 1 hour in the future
+            if (slotHour > currentHour + 1) return true
+            if (slotHour === currentHour + 1 && slotMinute >= currentMinute) return true
+            return false
+          })
+        }
+
+        // Sort slots
+        slots.sort()
+        setAvailableSlots(slots)
+      } catch (error) {
+        console.error('Error loading slots:', error)
+      }
     }
 
-    addBooking(booking)
-    setStep('success')
+    loadSlots()
+  }, [coach, selectedDate, open, supabase])
+
+  const handleConfirmBooking = async () => {
+    if (!coach || !selectedTime || !user) return
+
+    setLoading(true)
+
+    try {
+      const bookingDate = format(selectedDate, 'yyyy-MM-dd')
+      
+      // Ensure time_slot format is consistent (with seconds for DB)
+      const timeSlotForDB = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime
+
+      // Double-check that the slot is still available (prevent race conditions)
+      const { data: existingBooking } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('coach_id', coach.id)
+        .eq('booking_date', bookingDate)
+        .eq('time_slot', timeSlotForDB)
+        .neq('status', 'cancelled')
+        .single()
+
+      if (existingBooking) {
+        toast.error('Créneau déjà réservé', {
+          description: 'Ce créneau a été réservé entre-temps. Veuillez en choisir un autre.',
+        })
+        setLoading(false)
+        // Refresh available slots
+        const jsDay = selectedDate.getDay()
+        const sqlDay = jsDayToSqlDay(jsDay)
+        const { data: availability } = await supabase
+          .from('coach_availability')
+          .select('time_slot')
+          .eq('coach_id', coach.id)
+          .eq('day_of_week', sqlDay)
+          .eq('is_available', true)
+
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('time_slot')
+          .eq('coach_id', coach.id)
+          .eq('booking_date', bookingDate)
+          .neq('status', 'cancelled')
+
+        const allSlots = (availability || []).map((a: any) => {
+          const time = a.time_slot
+          return time.length > 5 ? time.substring(0, 5) : time
+        })
+        const booked = (bookings || []).map((b: any) => {
+          const time = b.time_slot
+          return time.length > 5 ? time.substring(0, 5) : time
+        })
+        const availableSlots = allSlots.filter((slot: string) => !booked.includes(slot))
+        setAvailableSlots(availableSlots.sort())
+        setSelectedTime(null)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert({
+          client_id: user.id,
+          coach_id: coach.id,
+          club_id: coach.clubId,
+          booking_date: bookingDate,
+          time_slot: timeSlotForDB,
+          duration_minutes: 60,
+          status: 'confirmed',
+          total_price: coach.hourlyRate,
+          payment_method: paymentMethod,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error creating booking:', error)
+        
+        // Check if it's a duplicate key error
+        if (error.code === '23505' || error.message.includes('duplicate key')) {
+          toast.error('Créneau déjà réservé', {
+            description: 'Ce créneau a été réservé entre-temps. Veuillez en choisir un autre.',
+          })
+          // Refresh available slots
+          const jsDay = selectedDate.getDay()
+          const sqlDay = jsDayToSqlDay(jsDay)
+          const { data: availability } = await supabase
+            .from('coach_availability')
+            .select('time_slot')
+            .eq('coach_id', coach.id)
+            .eq('day_of_week', sqlDay)
+            .eq('is_available', true)
+
+          const { data: bookings } = await supabase
+            .from('bookings')
+            .select('time_slot')
+            .eq('coach_id', coach.id)
+            .eq('booking_date', bookingDate)
+            .neq('status', 'cancelled')
+
+          const allSlots = (availability || []).map((a: any) => {
+            const time = a.time_slot
+            return time.length > 5 ? time.substring(0, 5) : time
+          })
+          const booked = (bookings || []).map((b: any) => {
+            const time = b.time_slot
+            return time.length > 5 ? time.substring(0, 5) : time
+          })
+          const availableSlots = allSlots.filter((slot: string) => !booked.includes(slot))
+          setAvailableSlots(availableSlots.sort())
+          setSelectedTime(null)
+        } else {
+          toast.error('Erreur', {
+            description: error.message || 'Impossible de créer la réservation.',
+          })
+        }
+        setLoading(false)
+        return
+      }
+
+      toast.success('Réservation confirmée !', {
+        description: 'Votre cours a été réservé avec succès.',
+      })
+
+      setStep('success')
+    } catch (error) {
+      console.error('Error:', error)
+      toast.error('Erreur', {
+        description: 'Une erreur est survenue lors de la réservation.',
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleClose = () => {
@@ -99,6 +272,8 @@ export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDr
     setTimeout(() => {
       setStep('date-time')
       setSelectedTime(null)
+      setSelectedDate(new Date())
+      setPaymentMethod('on_site')
     }, 300)
   }
 
@@ -239,7 +414,7 @@ export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDr
                                   : 'border-gray-200 hover:border-gray-300 text-gray-700'
                               )}
                             >
-                              {slot}
+                              {formatTime(slot)}
                             </button>
                           )
                         })}
@@ -300,7 +475,7 @@ export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDr
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-700 font-medium">Heure</span>
-                        <span className="font-semibold">{selectedTime}</span>
+                        <span className="font-semibold">{selectedTime ? formatTime(selectedTime) : ''}</span>
                       </div>
                       <div className="flex items-center justify-between pt-2 border-t border-blue-200">
                         <span className="text-gray-900 font-bold text-lg">Total</span>
@@ -311,13 +486,100 @@ export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDr
                     </div>
                   </div>
 
+                  {/* Payment Method Selection */}
+                  <div>
+                    <h3 className="font-semibold text-base mb-3">Méthode de paiement</h3>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <button
+                        onClick={() => setPaymentMethod('on_site')}
+                        className={cn(
+                          'p-4 rounded-xl border-2 transition-all text-left',
+                          paymentMethod === 'on_site'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'p-2 rounded-lg',
+                            paymentMethod === 'on_site' ? 'bg-blue-100' : 'bg-gray-100'
+                          )}>
+                            <Store className={cn(
+                              'w-5 h-5',
+                              paymentMethod === 'on_site' ? 'text-blue-600' : 'text-gray-600'
+                            )} />
+                          </div>
+                          <div>
+                            <p className={cn(
+                              'font-semibold',
+                              paymentMethod === 'on_site' ? 'text-blue-700' : 'text-gray-900'
+                            )}>
+                              Sur place
+                            </p>
+                            <p className="text-xs text-gray-600">Paiement au club</p>
+                          </div>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => setPaymentMethod('online')}
+                        className={cn(
+                          'p-4 rounded-xl border-2 transition-all text-left',
+                          paymentMethod === 'online'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            'p-2 rounded-lg',
+                            paymentMethod === 'online' ? 'bg-blue-100' : 'bg-gray-100'
+                          )}>
+                            <CreditCard className={cn(
+                              'w-5 h-5',
+                              paymentMethod === 'online' ? 'text-blue-600' : 'text-gray-600'
+                            )} />
+                          </div>
+                          <div>
+                            <p className={cn(
+                              'font-semibold',
+                              paymentMethod === 'online' ? 'text-blue-700' : 'text-gray-900'
+                            )}>
+                              En ligne
+                            </p>
+                            <p className="text-xs text-gray-600">Carte bancaire</p>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Payment Button */}
                   <Button
                     onClick={handleConfirmBooking}
-                    className="w-full h-14 text-base bg-black hover:bg-gray-800 flex items-center justify-center gap-2"
+                    disabled={loading}
+                    className={cn(
+                      'w-full h-14 text-base flex items-center justify-center gap-2',
+                      paymentMethod === 'online'
+                        ? 'bg-black hover:bg-gray-800'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                    )}
                   >
-                    <CreditCard className="w-5 h-5" />
-                    Payer avec Apple Pay
+                    {loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Réservation en cours...
+                      </>
+                    ) : paymentMethod === 'online' ? (
+                      <>
+                        <CreditCard className="w-5 h-5" />
+                        Payer {coach.hourlyRate}€ maintenant
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="w-5 h-5" />
+                        Réserver (payer sur place)
+                      </>
+                    )}
                   </Button>
 
                   <p className="text-xs text-center text-gray-500 px-4">
@@ -348,7 +610,7 @@ export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDr
                     <h3 className="text-2xl font-bold">Réservation confirmée !</h3>
                     <p className="text-gray-600">
                       Votre cours avec {coach.name} est confirmé pour le{' '}
-                      {format(selectedDate, 'd MMMM', { locale: fr })} à {selectedTime}
+                      {format(selectedDate, 'd MMMM', { locale: fr })} à {selectedTime ? formatTime(selectedTime) : ''}
                     </p>
                   </div>
 
@@ -364,4 +626,3 @@ export function BookingDrawer({ coach, open, onOpenChange, clubName }: BookingDr
     </Drawer.Root>
   )
 }
-

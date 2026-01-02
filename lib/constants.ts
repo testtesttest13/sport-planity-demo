@@ -1,3 +1,3 @@
-// Production URL - NO MORE LOCALHOST!
-export const APP_URL = 'https://sport-planity-demo-jwbw.vercel.app'
+// App URL from environment variable (falls back to localhost in development)
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 

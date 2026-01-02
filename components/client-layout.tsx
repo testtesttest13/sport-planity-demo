@@ -2,14 +2,14 @@
 
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { BottomNav } from '@/components/bottom-nav'
-import { DemoSwitcher } from '@/components/demo-switcher'
+import { Toaster } from '@/components/ui/toast'
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       {children}
       <BottomNav />
-      <DemoSwitcher />
+      <Toaster />
     </AuthProvider>
   )
 }

@@ -11,8 +11,8 @@ export const dynamicParams = true
 export const revalidate = 0
 
 export const metadata: Metadata = {
-  title: "Sport Planity - Réservez votre coach",
-  description: "La plateforme premium pour réserver vos cours de tennis, padel et équitation",
+  title: "Simpl. - Réservez votre coach",
+  description: "La plateforme simple et moderne pour réserver vos cours de sport",
 }
 
 export default function RootLayout({

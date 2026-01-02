@@ -1,19 +1,49 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, ChevronUp, User, Briefcase, Building, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 export function DemoSwitcher() {
   const router = useRouter()
   const { user } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const [userRole, setUserRole] = useState<string>('client')
+  const [userName, setUserName] = useState<string>('')
   const supabase = createClient()
+
+  // Fetch user profile to get role and name
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (!user) {
+        setUserRole('client')
+        setUserName('')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, full_name')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        setUserRole(profile.role || 'client')
+        setUserName(profile.full_name || user.email?.split('@')[0] || 'Utilisateur')
+      } else {
+        setUserRole('client')
+        setUserName(user.email?.split('@')[0] || 'Utilisateur')
+      }
+    }
+
+    fetchUserProfile()
+  }, [user, supabase])
 
   const handleSwitch = async (role: 'client' | 'coach' | 'admin') => {
     const demoAccounts = {
@@ -45,7 +75,9 @@ export function DemoSwitcher() {
           },
         },
       })
-      alert('Compte démo créé ! Cliquez à nouveau pour vous connecter.')
+      toast.success('Compte démo créé !', {
+        description: 'Cliquez à nouveau pour vous connecter.',
+      })
     } else {
       // Redirect based on role
       if (role === 'admin') {
@@ -87,11 +119,9 @@ export function DemoSwitcher() {
     },
   ]
 
-  // Get current user info
-  const userRole = (user?.user_metadata?.role as string) || 'client'
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Utilisateur'
-  
+  // Get current role from state (fetched from profiles table)
   const currentRole = roles.find((r) => r.type === userRole) || roles[0]
+  const displayName = userName || user?.email?.split('@')[0] || 'Utilisateur'
 
   return (
     <div className="fixed bottom-24 right-6 z-50">
@@ -119,7 +149,7 @@ export function DemoSwitcher() {
                     <currentRole.icon className="w-5 h-5" />
                   </div>
                   <div className="text-left flex-1">
-                    <p className="font-semibold text-gray-900 text-sm">{userName}</p>
+                    <p className="font-semibold text-gray-900 text-sm">{displayName}</p>
                     <p className="text-xs text-gray-600">{user.email}</p>
                   </div>
                 </div>
@@ -178,7 +208,7 @@ export function DemoSwitcher() {
             {user ? '👤 Compte' : '🎭 Démo'}
           </p>
           <p className="font-bold text-gray-900">
-            {user ? userName.split(' ')[0] : currentRole.name}
+            {user ? displayName.split(' ')[0] : currentRole.name}
           </p>
         </div>
         <div className="ml-2">

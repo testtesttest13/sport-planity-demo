@@ -7,47 +7,85 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, ChevronRight, Star, Users, Shield } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Search, MapPin, User, Star, LogIn } from 'lucide-react'
 import { useAuth } from '@/components/providers/auth-provider'
-import { mockClubs } from '@/lib/mock-data'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { AuthDialog } from '@/components/auth-dialog'
+
+const categories = [
+  { id: 'tennis', label: 'Tennis', icon: '🎾' },
+  { id: 'padel', label: 'Padel', icon: '🏐' },
+  { id: 'yoga', label: 'Yoga', icon: '🧘' },
+  { id: 'boxe', label: 'Boxe', icon: '🥊' },
+  { id: 'fitness', label: 'Fitness', icon: '💪' },
+]
+
+interface Club {
+  id: string
+  name: string
+  city: string
+  cover_url: string | null
+  rating: number
+  review_count: number
+  sport: string | null
+}
 
 export default function HomePage() {
   const router = useRouter()
-  const { user, loading } = useAuth()
-  const [searchCity, setSearchCity] = useState('')
+  const { user, loading: authLoading } = useAuth()
+  const supabase = createClient()
   
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login')
-    }
-  }, [user, loading, router])
+  const [clubs, setClubs] = useState<Club[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [authDialogOpen, setAuthDialogOpen] = useState(false)
 
-  const handleSearch = () => {
-    if (searchCity.trim()) {
-      // In a real app, this would navigate to a search results page
-      const filtered = mockClubs.filter((club) =>
-        club.city.toLowerCase().includes(searchCity.toLowerCase()) ||
-        club.address.toLowerCase().includes(searchCity.toLowerCase())
-      )
-      
-      if (filtered.length > 0) {
-        router.push(`/club/${filtered[0].id}`)
-      } else {
-        alert(`Aucun club trouvé pour "${searchCity}"`)
+  // Fetch clubs from Supabase (accessible without auth)
+  useEffect(() => {
+    async function fetchClubs() {
+      try {
+        const { data, error } = await supabase
+          .from('clubs')
+          .select('id, name, city, cover_url, rating, review_count, sport')
+          .order('rating', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching clubs:', error)
+        } else {
+          setClubs(data || [])
+        }
+      } catch (error) {
+        console.error('Error:', error)
+      } finally {
+        setLoading(false)
       }
     }
+
+    fetchClubs()
+  }, [supabase])
+
+  const filteredClubs = clubs.filter((club) => {
+    const matchesCategory = !selectedCategory || club.sport === selectedCategory
+    const matchesSearch = !searchQuery || 
+      club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      club.city.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
+
+  const handleClubClick = (clubId: string) => {
+    if (!user) {
+      setAuthDialogOpen(true)
+      return
+    }
+    router.push(`/club/${clubId}`)
   }
 
-  const featuredClubs = mockClubs.slice(0, 3)
-
-  // Show loading state while checking auth
+  // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Chargement...</p>
@@ -56,221 +94,193 @@ export default function HomePage() {
     )
   }
 
-  // If not authenticated, will redirect to login
-  if (!user) {
-    return null
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
-      {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=2000&auto=format&fit=crop"
-            alt="Tennis court"
-            fill
-            className="object-cover brightness-50"
-            priority
-          />
-        </div>
+    <div className="min-h-screen bg-white pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/" className="text-2xl font-bold text-blue-600">
+              Simpl.
+            </Link>
 
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60 z-[1]" />
-
-        {/* Hero Content */}
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
-            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-              Trouvez votre
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
-                coach parfait
-              </span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto">
-              Tennis • Padel • Équitation
-            </p>
-
-            {/* Search Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-              className="max-w-2xl mx-auto mt-12"
-            >
-              <Card className="p-6 glass border-white/20 shadow-2xl">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white/90 rounded-xl">
-                    <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    <input
-                      type="text"
-                      placeholder="Ville ou code postal"
-                      value={searchCity}
-                      onChange={(e) => setSearchCity(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      className="flex-1 bg-transparent border-none outline-none text-gray-900 placeholder:text-gray-400 font-medium"
-                    />
-                  </div>
-                  <Button 
-                    size="lg" 
-                    className="w-full md:w-auto px-8"
-                    onClick={handleSearch}
-                  >
-                    <Search className="w-5 h-5 mr-2" />
-                    Rechercher
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="w-6 h-10 border-2 border-white/50 rounded-full p-1"
-          >
-            <div className="w-1.5 h-3 bg-white/70 rounded-full mx-auto" />
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Pourquoi Sport Planity ?
-            </h2>
-            <p className="text-xl text-gray-600">
-              La plateforme de référence pour le coaching sportif
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Shield,
-                title: 'Coachs Certifiés',
-                description: 'Tous nos coachs sont diplômés d\'État et vérifiés',
-              },
-              {
-                icon: Star,
-                title: 'Meilleurs Clubs',
-                description: 'Accédez aux installations premium de votre région',
-              },
-              {
-                icon: Users,
-                title: 'Réservation Simple',
-                description: 'Trouvez et réservez votre créneau en quelques clics',
-              },
-            ].map((feature, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
+            {/* User Menu / Auth Button */}
+            {user ? (
+              <Link
+                href="/account"
+                className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-gray-200 hover:border-gray-300 transition-colors"
               >
-                <Card className="p-8 text-center hover:shadow-xl transition-shadow h-full">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white mb-6">
-                    <feature.icon className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </Card>
-              </motion.div>
-            ))}
+                <User className="w-5 h-5 text-gray-600" />
+                <span className="text-sm font-medium text-slate-900">Mon compte</span>
+              </Link>
+            ) : (
+              <Button
+                onClick={() => setAuthDialogOpen(true)}
+                variant="outline"
+                className="gap-2"
+              >
+                <LogIn className="w-4 h-4" />
+                Connexion
+              </Button>
+            )}
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Featured Clubs */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section for non-authenticated users */}
+        {!user && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex items-center justify-between mb-12"
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
           >
-            <div>
-              <h2 className="text-4xl font-bold mb-2">Les clubs populaires</h2>
-              <p className="text-gray-600">Découvrez nos établissements partenaires</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+              Réservez votre coach
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Trouvez les meilleurs coachs sportifs près de chez vous et réservez en quelques clics.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Search Pill */}
+        <div className="flex justify-center mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-3xl"
+          >
+            <div className="bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-shadow p-2">
+              <div className="flex items-center gap-3 px-4">
+                <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un club ou une ville..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent border-none outline-none text-slate-900 placeholder:text-gray-400 py-2"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
+        </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {featuredClubs.map((club, idx) => (
-              <motion.div
-                key={club.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
+        {/* Categories */}
+        <div className="mb-8">
+          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() =>
+                  setSelectedCategory(
+                    selectedCategory === category.id ? null : category.id
+                  )
+                }
+                className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full border-2 transition-all ${
+                  selectedCategory === category.id
+                    ? 'border-blue-600 bg-blue-50 text-blue-600'
+                    : 'border-gray-200 bg-white text-slate-700 hover:border-gray-300'
+                }`}
               >
-                <Link href={`/club/${club.id}`}>
-                  <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer">
-                    <div className="relative aspect-[16/10]">
-                      <Image
-                        src={club.coverUrl}
-                        alt={club.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      {club.verified && (
-                        <Badge className="absolute top-4 right-4 bg-white/95 text-blue-600 border-0">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Vérifié
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="p-6 space-y-3">
-                      <h3 className="text-xl font-bold">{club.name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        {club.city}
-                      </div>
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-bold">{club.rating}</span>
-                          <span className="text-sm text-gray-500">
-                            ({club.reviewCount} avis)
-                          </span>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              </motion.div>
+                <span className="text-xl">{category.icon}</span>
+                <span className="text-sm font-medium whitespace-nowrap">
+                  {category.label}
+                </span>
+              </button>
             ))}
           </div>
         </div>
-      </section>
 
+        {/* Clubs Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredClubs.map((club, idx) => (
+            <motion.div
+              key={club.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+            >
+              <div 
+                onClick={() => handleClubClick(club.id)}
+                className="group cursor-pointer"
+              >
+                {/* Image */}
+                <div className="relative aspect-square rounded-2xl overflow-hidden mb-3">
+                  <Image
+                    src={club.cover_url || '/placeholder-club.jpg'}
+                    alt={club.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {!user && (
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+                        <span className="text-sm font-medium text-slate-900">Voir le club</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="space-y-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-slate-900 text-base truncate flex-1">
+                      {club.name}
+                    </h3>
+                    {club.rating > 0 && (
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-medium text-slate-900">
+                          {club.rating.toFixed(1)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 truncate">
+                    {club.city}
+                  </p>
+                  <div className="flex items-center justify-between pt-1">
+                    <p className="text-sm text-gray-500">
+                      {club.review_count} avis
+                    </p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      À partir de 50€/h
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {filteredClubs.length === 0 && (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">🔍</div>
+            <p className="text-gray-600 text-lg">
+              {selectedCategory
+                ? 'Aucun club trouvé pour cette catégorie'
+                : 'Aucun club disponible'}
+            </p>
+            <p className="text-gray-500 text-sm mt-2">
+              Essayez une autre recherche ou catégorie
+            </p>
+          </div>
+        )}
+      </main>
+
+      {/* Auth Dialog */}
+      <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
     </div>
   )
 }
-

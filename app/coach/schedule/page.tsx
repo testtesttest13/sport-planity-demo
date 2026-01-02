@@ -659,7 +659,7 @@ export default function CoachSchedulePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded border-2 border-blue-200 bg-blue-50" />
-                      <span>Aujourd'hui</span>
+                      <span>Aujourd&apos;hui</span>
                     </div>
                   </div>
                 </CardContent>

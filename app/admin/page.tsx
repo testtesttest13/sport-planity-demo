@@ -237,7 +237,7 @@ export default function AdminDashboard() {
           {/* Join Code Card */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-purple-200 text-sm mb-1">Code d'invitation coachs</p>
+              <p className="text-purple-200 text-sm mb-1">Code d&apos;invitation coachs</p>
               <p className="text-2xl font-bold tracking-widest">{club.join_code || '-----'}</p>
             </div>
             <Button

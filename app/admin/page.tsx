@@ -58,7 +58,7 @@ interface Booking {
   id: string
   coach_id: string
   client_id: string
-  date: string
+  booking_date: string
   time_slot: string
   status: string
   total_price: number
@@ -131,30 +131,38 @@ export default function AdminDashboard() {
 
       // Fetch all bookings for coaches in this club
       if (coachesData && coachesData.length > 0) {
-        const coachIds = coachesData.map(c => c.profile_id)
+        const coachIds = coachesData.map(c => c.id) // Use coaches.id, not profile_id!
         
-        const { data: bookingsData } = await supabase
-          .from('bookings')
-          .select(`
-            id,
-            coach_id,
-            client_id,
-            date,
-            time_slot,
-            status,
-            total_price,
-            created_at,
-            client:profiles!bookings_client_id_fkey (
-              full_name,
-              avatar_url
-            )
-          `)
-          .in('coach_id', coachIds)
-          .order('date', { ascending: false })
+        if (coachIds.length === 0) {
+          setBookings([])
+        } else {
+          const { data: bookingsData } = await supabase
+            .from('bookings')
+            .select(`
+              id,
+              coach_id,
+              client_id,
+              booking_date,
+              time_slot,
+              status,
+              total_price,
+              created_at,
+              client:profiles!bookings_client_id_fkey (
+                full_name,
+                avatar_url
+              )
+            `)
+            .in('coach_id', coachIds)
+            .order('booking_date', { ascending: false })
 
-        if (bookingsData) {
-          setBookings(bookingsData as unknown as Booking[])
+          if (bookingsData) {
+            setBookings(bookingsData as unknown as Booking[])
+          } else {
+            setBookings([])
+          }
         }
+      } else {
+        setBookings([])
       }
 
       setLoading(false)
@@ -187,7 +195,7 @@ export default function AdminDashboard() {
   const { start, end } = getDateRange()
   
   const periodBookings = bookings.filter(b => {
-    const bookingDate = new Date(b.date)
+    const bookingDate = new Date(b.booking_date)
     return isWithinInterval(bookingDate, { start, end })
   })
 
@@ -443,7 +451,7 @@ export default function AdminDashboard() {
             <Card>
               <CardContent className="p-0 divide-y divide-gray-100">
                 {recentBookings.map((booking) => {
-                  const coach = coaches.find(c => c.profile_id === booking.coach_id)
+                  const coach = coaches.find(c => c.id === booking.coach_id)
                   return (
                     <div key={booking.id} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
@@ -458,7 +466,7 @@ export default function AdminDashboard() {
                             {booking.client?.full_name || 'Client'}
                           </p>
                           <p className="text-sm text-gray-500">
-                            avec {coach?.profile?.full_name || 'Coach'} • {format(new Date(booking.date), 'd MMM', { locale: fr })}
+                            avec {coach?.profile?.full_name || 'Coach'} • {format(new Date(booking.booking_date), 'd MMM', { locale: fr })}
                           </p>
                         </div>
                       </div>

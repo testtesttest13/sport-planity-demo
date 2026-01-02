@@ -127,9 +127,14 @@ export default function AdminBookingsPage() {
           // Add coach name to each booking
           const bookingsWithCoach = bookingsData.map(b => {
             const coach = coachesData.find(c => c.profile_id === b.coach_id)
+            // Handle profile as object or array
+            const profile = coach?.profile
+            const coachName = Array.isArray(profile) 
+              ? (profile[0] as { full_name?: string | null })?.full_name || 'Coach'
+              : (profile as { full_name?: string | null })?.full_name || 'Coach'
             return {
               ...b,
-              coach_name: (coach?.profile as { full_name: string | null })?.full_name || 'Coach'
+              coach_name: coachName
             }
           })
           setBookings(bookingsWithCoach as unknown as Booking[])

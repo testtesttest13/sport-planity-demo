@@ -90,6 +90,7 @@ export default function AdminBookingsPage() {
       const { data: coachesData } = await supabase
         .from('coaches')
         .select(`
+          id,
           profile_id,
           profile:profiles!coaches_profile_id_fkey (
             full_name
@@ -100,8 +101,14 @@ export default function AdminBookingsPage() {
       if (coachesData) {
         setCoaches(coachesData as unknown as Coach[])
 
-        // Fetch bookings
-        const coachIds = coachesData.map(c => c.profile_id)
+        // Fetch bookings using coaches.id (not profile_id!)
+        const coachIds = coachesData.map(c => c.id)
+        
+        if (coachIds.length === 0) {
+          setBookings([])
+          setLoading(false)
+          return
+        }
         
         const { data: bookingsData } = await supabase
           .from('bookings')
@@ -126,7 +133,7 @@ export default function AdminBookingsPage() {
         if (bookingsData) {
           // Add coach name to each booking
           const bookingsWithCoach = bookingsData.map(b => {
-            const coach = coachesData.find(c => c.profile_id === b.coach_id)
+            const coach = coachesData.find(c => c.id === b.coach_id)
             // Handle profile as object or array
             const profile = coach?.profile
             let coachName = 'Coach'
@@ -143,7 +150,11 @@ export default function AdminBookingsPage() {
             }
           })
           setBookings(bookingsWithCoach as unknown as Booking[])
+        } else {
+          setBookings([])
         }
+      } else {
+        setBookings([])
       }
 
       setLoading(false)

@@ -30,7 +30,7 @@ interface Booking {
   id: string
   coach_id: string
   client_id: string
-  date: string
+  booking_date: string
   time_slot: string
   status: string
   total_price: number
@@ -116,7 +116,7 @@ export default function AdminBookingsPage() {
             id,
             coach_id,
             client_id,
-            date,
+            booking_date,
             time_slot,
             status,
             total_price,
@@ -128,7 +128,7 @@ export default function AdminBookingsPage() {
             )
           `)
           .in('coach_id', coachIds)
-          .order('date', { ascending: false })
+          .order('booking_date', { ascending: false })
 
         if (bookingsData) {
           // Add coach name to each booking
@@ -185,7 +185,7 @@ export default function AdminBookingsPage() {
   const filteredBookings = bookings.filter(b => {
     // Date filter
     if (dateRange) {
-      const bookingDate = new Date(b.date)
+      const bookingDate = new Date(b.booking_date)
       if (!isWithinInterval(bookingDate, { start: dateRange.start, end: dateRange.end })) {
         return false
       }
@@ -432,7 +432,7 @@ export default function AdminBookingsPage() {
                           <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
-                              {format(new Date(booking.date), 'd MMM yyyy', { locale: fr })}
+                              {format(new Date(booking.booking_date), 'd MMM yyyy', { locale: fr })}
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />

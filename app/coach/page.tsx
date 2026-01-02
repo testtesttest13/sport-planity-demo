@@ -80,6 +80,7 @@ export default function CoachDashboard() {
     }
 
     loadCoachData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, router])
 
   const loadCoachData = async () => {

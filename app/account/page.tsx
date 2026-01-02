@@ -57,6 +57,7 @@ export default function AccountPage() {
     if (user) {
       loadProfile()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, router])
 
   const loadProfile = async () => {

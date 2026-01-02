@@ -93,7 +93,37 @@ export default function MyBookingsPage() {
             description: 'Impossible de charger vos réservations.',
           })
         } else {
-          setBookings(data || [])
+          // Transform Supabase data to match Booking interface
+          const transformedBookings = (data || []).map((b: any) => {
+            const coach = Array.isArray(b.coaches) ? b.coaches[0] : b.coaches
+            const club = Array.isArray(b.clubs) ? b.clubs[0] : b.clubs
+            const profile = Array.isArray(coach?.profiles) ? coach?.profiles[0] : coach?.profiles
+            
+            return {
+              id: b.id,
+              booking_date: b.booking_date,
+              time_slot: b.time_slot,
+              status: b.status,
+              total_price: b.total_price,
+              coach_id: b.coach_id,
+              club_id: b.club_id,
+              coach: {
+                id: coach?.id || '',
+                profile: {
+                  full_name: profile?.full_name || null,
+                  avatar_url: profile?.avatar_url || null,
+                },
+                speciality: coach?.speciality || null,
+              },
+              club: {
+                id: club?.id || '',
+                name: club?.name || '',
+                address: club?.address || null,
+                city: club?.city || '',
+              },
+            }
+          })
+          setBookings(transformedBookings)
         }
       } catch (error) {
         console.error('Error:', error)
@@ -184,7 +214,7 @@ export default function MyBookingsPage() {
 
       if (error) {
         toast.error('Erreur', {
-          description: 'Impossible d\'annuler la réservation.',
+          description: 'Impossible d&apos;annuler la réservation.',
         })
       } else {
         toast.success('Réservation annulée', {
@@ -220,7 +250,37 @@ export default function MyBookingsPage() {
           .order('booking_date', { ascending: true })
 
         if (data) {
-          setBookings(data)
+          // Transform Supabase data to match Booking interface
+          const transformedBookings = data.map((b: any) => {
+            const coach = Array.isArray(b.coaches) ? b.coaches[0] : b.coaches
+            const club = Array.isArray(b.clubs) ? b.clubs[0] : b.clubs
+            const profile = Array.isArray(coach?.profiles) ? coach?.profiles[0] : coach?.profiles
+            
+            return {
+              id: b.id,
+              booking_date: b.booking_date,
+              time_slot: b.time_slot,
+              status: b.status,
+              total_price: b.total_price,
+              coach_id: b.coach_id,
+              club_id: b.club_id,
+              coach: {
+                id: coach?.id || '',
+                profile: {
+                  full_name: profile?.full_name || null,
+                  avatar_url: profile?.avatar_url || null,
+                },
+                speciality: coach?.speciality || null,
+              },
+              club: {
+                id: club?.id || '',
+                name: club?.name || '',
+                address: club?.address || null,
+                city: club?.city || '',
+              },
+            }
+          })
+          setBookings(transformedBookings)
         }
       }
     } catch (error) {

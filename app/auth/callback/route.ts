@@ -28,12 +28,9 @@ export async function GET(request: Request) {
   }
 
   const cookieStore = cookies()
+  const response = NextResponse.redirect(`${origin}/onboarding`)
 
   try {
-    // Create a response that we'll update with redirect URL
-    let redirectUrl = `${origin}/onboarding`
-    const response = NextResponse.redirect(redirectUrl)
-    
     // Create Supabase client with proper cookie handling for callback
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -83,6 +80,7 @@ export async function GET(request: Request) {
     console.log('Profile error:', profileError)
 
     // Determine redirect URL
+    let redirectUrl = `${origin}/onboarding`
     if (profileError || !profile) {
       console.log('No profile found, redirecting to onboarding')
       redirectUrl = `${origin}/onboarding`
@@ -96,10 +94,14 @@ export async function GET(request: Request) {
       redirectUrl = role === 'admin' ? `${origin}/admin` : role === 'coach' ? `${origin}/coach` : `${origin}`
     }
 
-    // Update the response with the correct redirect URL
-    return NextResponse.redirect(redirectUrl, {
-      headers: response.headers,
+    // Create new redirect response with cookies from the original response
+    const finalResponse = NextResponse.redirect(redirectUrl)
+    // Copy all cookies from the response (set by setAll)
+    response.cookies.getAll().forEach((cookie) => {
+      finalResponse.cookies.set(cookie.name, cookie.value, cookie)
     })
+
+    return finalResponse
     
   } catch (err) {
     console.error('Callback unexpected error:', err)

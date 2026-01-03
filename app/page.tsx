@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, MapPin, User, Star, LogIn, ArrowRight, Briefcase, Check, Users, Clock, Shield, Sparkles } from 'lucide-react'
@@ -240,7 +241,9 @@ export default function HomePage() {
 
         {/* Clubs - Grid on desktop, Slider on mobile */}
         {/* Desktop Grid */}
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="hidden sm:block">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-6">Les révélations de la semaine</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredClubs.map((club, idx) => (
             <motion.div
               key={club.id}
@@ -299,10 +302,12 @@ export default function HomePage() {
               </div>
             </motion.div>
           ))}
+          </div>
         </div>
 
         {/* Mobile Slider (horizontal scroll) */}
-        <div className="sm:hidden -mx-4 px-4">
+        <div className="sm:hidden -mx-4 px-4 mb-12">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4 px-4">Les révélations de la semaine</h2>
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
             {filteredClubs.map((club) => (
               <div
@@ -364,6 +369,121 @@ export default function HomePage() {
               Essayez une autre recherche ou catégorie
             </p>
           </div>
+        )}
+
+        {/* Section : Les clubs les plus actifs */}
+        {!selectedCategory && !searchQuery && clubs.length > 0 && (
+          <section className="mt-16 md:mt-24">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-6 md:mb-8">Les clubs les plus actifs</h2>
+            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {clubs
+                .sort((a, b) => (b.review_count || 0) - (a.review_count || 0))
+                .slice(0, 8)
+                .map((club, idx) => (
+                  <motion.div
+                    key={club.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.05 }}
+                  >
+                    <div 
+                      onClick={() => handleClubClick(club.id)}
+                      className="group cursor-pointer"
+                    >
+                      {/* Image */}
+                      <div className="relative aspect-square rounded-2xl overflow-hidden mb-3">
+                        <Image
+                          src={club.cover_url || '/placeholder-club.jpg'}
+                          alt={club.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+
+                      {/* Info */}
+                      <div className="space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-slate-900 text-base truncate flex-1">
+                            {club.name}
+                          </h3>
+                          {club.rating > 0 && (
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              <span className="text-sm font-medium text-slate-900">
+                                {club.rating.toFixed(1)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 truncate">
+                          {club.city}
+                        </p>
+                        <div className="flex items-center justify-between pt-1">
+                          <p className="text-sm text-gray-500">
+                            {club.review_count} avis
+                          </p>
+                          <p className="text-sm font-semibold text-slate-900">
+                            À partir de 50€/h
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+            </div>
+
+            {/* Mobile Slider pour clubs actifs */}
+            <div className="sm:hidden -mx-4 px-4">
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+                {clubs
+                  .sort((a, b) => (b.review_count || 0) - (a.review_count || 0))
+                  .slice(0, 8)
+                  .map((club) => (
+                    <div
+                      key={club.id}
+                      onClick={() => handleClubClick(club.id)}
+                      className="group cursor-pointer flex-shrink-0 w-[280px] snap-start"
+                    >
+                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                        <Image
+                          src={club.cover_url || '/placeholder-club.jpg'}
+                          alt={club.name}
+                          fill
+                          className="object-cover group-active:scale-105 transition-transform duration-200"
+                        />
+                      </div>
+                      <div className="space-y-0.5 px-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold text-slate-900 text-sm truncate flex-1">
+                            {club.name}
+                          </h3>
+                          {club.rating > 0 && (
+                            <div className="flex items-center gap-0.5 flex-shrink-0">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              <span className="text-xs font-medium text-slate-900">
+                                {club.rating.toFixed(1)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">
+                          {club.city}
+                        </p>
+                        <div className="flex items-center justify-between pt-0.5">
+                          <p className="text-xs text-gray-500">
+                            {club.review_count} avis
+                          </p>
+                          <p className="text-xs font-semibold text-slate-900">
+                            À partir de 50€/h
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </section>
         )}
 
         {/* Pourquoi choisir Simpl. ? */}
@@ -494,7 +614,7 @@ export default function HomePage() {
       </main>
 
       {/* Pro Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-indigo-700 py-16 sm:py-20 border-t border-gray-200">
+      <section className="bg-white py-16 sm:py-20 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -502,15 +622,15 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-4 md:mb-6">
               Vous êtes Coach ou Gérant de Club ?
             </h2>
-            <p className="text-lg md:text-xl text-blue-50 mb-8 md:mb-12">
+            <p className="text-lg md:text-xl text-gray-600 mb-8 md:mb-12">
               Rejoignez des centaines de professionnels qui font confiance à Simpl. pour gérer leurs réservations.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href="/pro">
-                <Button size="lg" className="h-14 px-8 text-base rounded-full bg-white text-blue-600 hover:bg-gray-50 shadow-xl font-semibold">
+                <Button size="lg" className="h-14 px-8 text-base rounded-full bg-blue-600 text-white hover:bg-blue-700 shadow-xl font-semibold">
                   Espace Professionnel
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
@@ -518,7 +638,8 @@ export default function HomePage() {
               <Link href="/pro">
                 <Button 
                   size="lg" 
-                  className="h-14 px-8 text-base rounded-full bg-transparent border-2 border-white text-white hover:bg-white/20 font-semibold"
+                  variant="outline"
+                  className="h-14 px-8 text-base rounded-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold"
                 >
                   En savoir plus
                 </Button>
@@ -547,17 +668,17 @@ export default function HomePage() {
               <h3 className="font-semibold text-slate-900 mb-4">Pour les clients</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:translate-x-1 inline-block">
                     Rechercher un coach
                   </Link>
                 </li>
                 <li>
-                  <Link href="/my-bookings" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/my-bookings" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:translate-x-1 inline-block">
                     Mes réservations
                   </Link>
                 </li>
                 <li>
-                  <Link href="/account" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/account" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:translate-x-1 inline-block">
                     Mon compte
                   </Link>
                 </li>
@@ -569,12 +690,12 @@ export default function HomePage() {
               <h3 className="font-semibold text-slate-900 mb-4">Professionnels</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/pro" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/pro" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:translate-x-1 inline-block">
                     Espace Pro
                   </Link>
                 </li>
                 <li>
-                  <Link href="/login" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/login" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:translate-x-1 inline-block">
                     Connexion
                   </Link>
                 </li>
@@ -586,12 +707,12 @@ export default function HomePage() {
               <h3 className="font-semibold text-slate-900 mb-4">Support</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="mailto:contact@simpl.fr" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <a href="mailto:contact@simpl.fr" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:translate-x-1 inline-block">
                     Contact
                   </a>
                 </li>
                 <li>
-                  <Link href="/pro" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <Link href="/pro" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:translate-x-1 inline-block">
                     Devenir partenaire
                   </Link>
                 </li>
@@ -605,13 +726,13 @@ export default function HomePage() {
               © {new Date().getFullYear()} Simpl. Tous droits réservés.
             </p>
             <div className="flex gap-6">
-              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:underline">
                 Mentions légales
               </Link>
-              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:underline">
                 Confidentialité
               </Link>
-              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-all duration-200 hover:underline">
                 CGU
               </Link>
             </div>

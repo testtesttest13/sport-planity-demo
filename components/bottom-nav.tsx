@@ -26,17 +26,14 @@ export function BottomNav() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role, full_name')
+        .select('role, sport')
         .eq('id', user.id)
         .single()
 
       if (profile) {
         setUserRole(profile.role || 'client')
-        // Check if onboarding is complete
-        const complete = profile.full_name && 
-          profile.full_name !== user.email && 
-          !profile.full_name.includes('@') &&
-          profile.role
+        // Check if onboarding is complete - for clients, check if sport is selected
+        const complete = profile.role && (profile.role !== 'client' || profile.sport)
         setIsOnboardingComplete(!!complete)
       } else {
         setUserRole('client')
@@ -54,7 +51,6 @@ export function BottomNav() {
   const clientNav = [
     { href: '/', icon: Search, label: 'Rechercher' },
     { href: '/my-bookings', icon: Inbox, label: 'Mes cours' },
-    { href: '/pro', icon: Briefcase, label: 'Devenir pro' },
     { href: '/account', icon: User, label: 'Compte' },
   ]
 

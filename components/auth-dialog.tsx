@@ -114,11 +114,11 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
         // Check if user has completed onboarding
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role, full_name')
+          .select('role, sport')
           .eq('id', data.user.id)
           .single()
 
-        if (!profile || !profile.full_name || profile.full_name.includes('@')) {
+        if (!profile || !profile.role || (profile.role === 'client' && !profile.sport)) {
           router.push('/onboarding')
           return
         }

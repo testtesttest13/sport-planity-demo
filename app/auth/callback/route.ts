@@ -75,7 +75,7 @@ export async function GET(request: Request) {
     // Check if user has completed onboarding
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role, full_name')
+      .select('role, sport')
       .eq('id', data.user.id)
       .single()
 
@@ -84,11 +84,12 @@ export async function GET(request: Request) {
 
     // Determine redirect URL
     // With Google OAuth, email is already verified, so always go to onboarding if profile incomplete
-    if (profileError || !profile) {
+    // For clients, check if sport is selected
+    if (profileError || !profile || !profile.role) {
       console.log('No profile found, redirecting to onboarding')
       redirectUrl = `${origin}/onboarding`
-    } else if (!profile.full_name || profile.full_name === data.user.email || profile.full_name.includes('@') || !profile.role) {
-      console.log('Profile incomplete (missing full_name or role), redirecting to onboarding')
+    } else if (profile.role === 'client' && !profile.sport) {
+      console.log('Profile incomplete (client without sport), redirecting to onboarding')
       redirectUrl = `${origin}/onboarding`
     } else {
       // Profile is complete, redirect based on role

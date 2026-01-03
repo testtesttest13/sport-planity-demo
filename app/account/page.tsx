@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, Mail, Phone, Edit, LogOut, Building2, ArrowRight, AlertCircle } from 'lucide-react'
+import { User, Mail, Phone, Edit, LogOut, Building2, ArrowRight, AlertCircle, Briefcase, X, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -55,6 +55,7 @@ export default function AccountPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [emailConfirmDialogOpen, setEmailConfirmDialogOpen] = useState(false)
+  const [proMenuOpen, setProMenuOpen] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -133,12 +134,10 @@ export default function AccountPage() {
   const displayName = profile?.full_name || user.email?.split('@')[0] || 'Utilisateur'
   const displayEmail = profile?.email || user.email || ''
 
-  // Check if onboarding is incomplete
+  // Check if onboarding is incomplete - for clients, check if sport is selected
   const isOnboardingIncomplete = !profile || 
-    !profile.full_name || 
-    profile.full_name === user.email || 
-    profile.full_name.includes('@') ||
-    !profile.role
+    !profile.role ||
+    (profile.role === 'client' && !profile.sport)
 
   // Check if email is verified
   const isEmailVerified = user?.email_confirmed_at !== null && user?.email_confirmed_at !== undefined
@@ -225,14 +224,20 @@ export default function AccountPage() {
 
               {/* Phone */}
               <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5 text-gray-600" />
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  !profile?.phone ? 'bg-amber-100' : 'bg-gray-100'
+                }`}>
+                  {!profile?.phone ? (
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  ) : (
+                    <Phone className="w-5 h-5 text-gray-600" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-500 uppercase font-medium mb-1">
                     Téléphone
                   </p>
-                  <p className="text-sm font-medium text-slate-900">
+                  <p className={`text-sm font-medium ${!profile?.phone ? 'text-amber-600' : 'text-slate-900'}`}>
                     {profile?.phone || 'Non renseigné'}
                   </p>
                 </div>
@@ -326,6 +331,25 @@ export default function AccountPage() {
           </motion.div>
         )}
 
+        {/* Je suis pro Button (for clients only) */}
+        {profile?.role === 'client' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            className="mb-6"
+          >
+            <Button
+              onClick={() => setProMenuOpen(true)}
+              variant="outline"
+              className="w-full h-12 border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+            >
+              <Briefcase className="w-4 h-4 mr-2" />
+              Je suis pro
+            </Button>
+          </motion.div>
+        )}
+
         {/* Edit Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -357,6 +381,41 @@ export default function AccountPage() {
           </Button>
         </motion.div>
       </div>
+
+      {/* Pro Menu Dialog */}
+      <Dialog open={proMenuOpen} onOpenChange={setProMenuOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Devenir professionnel</DialogTitle>
+            <DialogDescription>
+              Choisissez votre profil professionnel
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <Button
+              onClick={() => {
+                setProMenuOpen(false)
+                router.push('/onboarding?role=coach')
+              }}
+              className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Briefcase className="w-5 h-5 mr-2" />
+              Je suis Coach
+            </Button>
+            <Button
+              onClick={() => {
+                setProMenuOpen(false)
+                router.push('/onboarding?role=admin')
+              }}
+              variant="outline"
+              className="w-full h-14 border-2"
+            >
+              <Building2 className="w-5 h-5 mr-2" />
+              Je suis un Club
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Email Confirmation Dialog */}
       <Dialog open={emailConfirmDialogOpen} onOpenChange={setEmailConfirmDialogOpen}>

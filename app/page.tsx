@@ -7,11 +7,12 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, User, Star, LogIn, ArrowRight } from 'lucide-react'
+import { Search, MapPin, User, Star, LogIn, ArrowRight, Briefcase } from 'lucide-react'
 import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { AuthDialog } from '@/components/auth-dialog'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 const categories = [
   { id: 'tennis', label: 'Tennis', icon: '🎾' },
@@ -41,6 +42,33 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [authDialogOpen, setAuthDialogOpen] = useState(false)
+  const [userProfile, setUserProfile] = useState<{ avatar_url: string | null; role: string | null } | null>(null)
+
+  // Fetch user profile for avatar
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (!user) {
+        setUserProfile(null)
+        return
+      }
+
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_url, role')
+          .eq('id', user.id)
+          .single()
+
+        if (data) {
+          setUserProfile(data)
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error)
+      }
+    }
+
+    fetchUserProfile()
+  }, [user, supabase])
 
   // Fetch clubs from Supabase (accessible without auth)
   useEffect(() => {
@@ -107,13 +135,36 @@ export default function HomePage() {
 
             {/* User Menu / Auth Button */}
             {user ? (
-              <Link
-                href="/account"
-                className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-gray-200 hover:border-gray-300 transition-colors"
-              >
-                <User className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-medium text-slate-900">Mon compte</span>
-              </Link>
+              <div className="flex items-center gap-3">
+                {/* CTA "Je suis pro" pour les clients seulement */}
+                {userProfile?.role === 'client' && (
+                  <Link
+                    href="/pro"
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    <span>Je suis pro</span>
+                  </Link>
+                )}
+                {/* Avatar ou icône User */}
+                <Link
+                  href="/account"
+                  className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors overflow-hidden"
+                >
+                  {userProfile?.avatar_url ? (
+                    <Avatar className="w-full h-full">
+                      <AvatarImage src={userProfile.avatar_url} alt="Profile" />
+                      <AvatarFallback>
+                        <User className="w-5 h-5 text-gray-600" />
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                      <User className="w-5 h-5 text-gray-600" />
+                    </div>
+                  )}
+                </Link>
+              </div>
             ) : (
               <Button
                 onClick={() => setAuthDialogOpen(true)}

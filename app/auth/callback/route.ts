@@ -28,9 +28,12 @@ export async function GET(request: Request) {
   }
 
   const cookieStore = cookies()
-  const response = NextResponse.redirect(`${origin}/onboarding`)
 
   try {
+    // Create a mutable response that will be updated with cookies
+    let redirectUrl = `${origin}/onboarding`
+    const response = NextResponse.redirect(redirectUrl)
+    
     // Create Supabase client with proper cookie handling for callback
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -80,7 +83,7 @@ export async function GET(request: Request) {
     console.log('Profile error:', profileError)
 
     // Determine redirect URL
-    let redirectUrl = `${origin}/onboarding`
+    // With Google OAuth, email is already verified, so always go to onboarding if profile incomplete
     if (profileError || !profile) {
       console.log('No profile found, redirecting to onboarding')
       redirectUrl = `${origin}/onboarding`
@@ -94,12 +97,21 @@ export async function GET(request: Request) {
       redirectUrl = role === 'admin' ? `${origin}/admin` : role === 'coach' ? `${origin}/coach` : `${origin}`
     }
 
-    // Create new redirect response with cookies from the original response
+    // Create new redirect response with the correct URL and copy all cookies
     const finalResponse = NextResponse.redirect(redirectUrl)
-    // Copy all cookies from the response (set by setAll)
+    // Copy all cookies from the response (set by setAll during exchangeCodeForSession)
     response.cookies.getAll().forEach((cookie) => {
-      finalResponse.cookies.set(cookie.name, cookie.value, cookie)
+      finalResponse.cookies.set(cookie.name, cookie.value, {
+        ...cookie,
+        httpOnly: cookie.httpOnly ?? true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: cookie.sameSite ?? 'lax',
+        path: cookie.path ?? '/',
+      })
     })
+
+    console.log('Redirecting to:', redirectUrl)
+    console.log('Cookies set:', response.cookies.getAll().length)
 
     return finalResponse
     

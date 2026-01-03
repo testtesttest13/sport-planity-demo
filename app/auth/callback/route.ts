@@ -87,8 +87,8 @@ export async function GET(request: Request) {
     if (profileError || !profile) {
       console.log('No profile found, redirecting to onboarding')
       redirectUrl = `${origin}/onboarding`
-    } else if (!profile.full_name || profile.full_name === data.user.email || profile.full_name.includes('@')) {
-      console.log('Profile incomplete, redirecting to onboarding')
+    } else if (!profile.full_name || profile.full_name === data.user.email || profile.full_name.includes('@') || !profile.role) {
+      console.log('Profile incomplete (missing full_name or role), redirecting to onboarding')
       redirectUrl = `${origin}/onboarding`
     } else {
       // Profile is complete, redirect based on role

@@ -6,10 +6,13 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const error = requestUrl.searchParams.get('error')
-  const origin = 'https://sport-planity-demo-jwbw.vercel.app'
+  
+  // Use the request origin dynamically, fallback to env var or localhost
+  const origin = requestUrl.origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   console.log('=== AUTH CALLBACK DEBUG ===')
   console.log('URL:', requestUrl.href)
+  console.log('Origin:', origin)
   console.log('Code present:', !!code)
   console.log('Error param:', error)
 

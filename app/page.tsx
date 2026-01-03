@@ -253,8 +253,9 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Clubs Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Clubs - Grid on desktop, Slider on mobile */}
+        {/* Desktop Grid */}
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredClubs.map((club, idx) => (
             <motion.div
               key={club.id}
@@ -313,6 +314,57 @@ export default function HomePage() {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* Mobile Slider (horizontal scroll) */}
+        <div className="sm:hidden -mx-4 px-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+            {filteredClubs.map((club) => (
+              <div
+                key={club.id}
+                onClick={() => handleClubClick(club.id)}
+                className="group cursor-pointer flex-shrink-0 w-[280px] snap-start"
+              >
+                {/* Image - Smaller on mobile */}
+                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-2">
+                  <Image
+                    src={club.cover_url || '/placeholder-club.jpg'}
+                    alt={club.name}
+                    fill
+                    className="object-cover group-active:scale-105 transition-transform duration-200"
+                  />
+                </div>
+
+                {/* Info - Compact on mobile */}
+                <div className="space-y-0.5 px-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-slate-900 text-sm truncate flex-1">
+                      {club.name}
+                    </h3>
+                    {club.rating > 0 && (
+                      <div className="flex items-center gap-0.5 flex-shrink-0">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs font-medium text-slate-900">
+                          {club.rating.toFixed(1)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 truncate">
+                    {club.city}
+                  </p>
+                  <div className="flex items-center justify-between pt-0.5">
+                    <p className="text-xs text-gray-500">
+                      {club.review_count} avis
+                    </p>
+                    <p className="text-xs font-semibold text-slate-900">
+                      À partir de 50€/h
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {filteredClubs.length === 0 && (

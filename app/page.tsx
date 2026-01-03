@@ -181,37 +181,6 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12 md:mb-16"
-        >
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 md:mb-6 leading-tight">
-            Réservez votre coach sportif
-            <br />
-            <span className="text-blue-600">en quelques clics</span>
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8 md:mb-12">
-            Trouvez les meilleurs coachs près de chez vous. Tennis, Fitness, Yoga, Boxe... Réservez votre séance en toute simplicité.
-          </p>
-          
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 md:gap-8 max-w-2xl mx-auto mb-8">
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">500+</div>
-              <div className="text-sm md:text-base text-gray-600">Coachs certifiés</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">10k+</div>
-              <div className="text-sm md:text-base text-gray-600">Réservations</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">4.8/5</div>
-              <div className="text-sm md:text-base text-gray-600">Satisfaction</div>
-            </div>
-          </div>
-        </motion.div>
 
         {/* Search Pill */}
         <div className="flex justify-center mb-8">
@@ -525,7 +494,7 @@ export default function HomePage() {
       </main>
 
       {/* Pro Section */}
-      <section className="bg-gradient-to-br from-blue-600 to-indigo-700 py-16 sm:py-20 border-t border-gray-200 text-white">
+      <section className="bg-gradient-to-br from-blue-600 to-indigo-700 py-16 sm:py-20 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -533,15 +502,15 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center max-w-3xl mx-auto"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6">
               Vous êtes Coach ou Gérant de Club ?
             </h2>
-            <p className="text-lg md:text-xl text-blue-100 mb-8 md:mb-12">
+            <p className="text-lg md:text-xl text-blue-50 mb-8 md:mb-12">
               Rejoignez des centaines de professionnels qui font confiance à Simpl. pour gérer leurs réservations.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href="/pro">
-                <Button size="lg" className="h-14 px-8 text-base rounded-full bg-white text-blue-600 hover:bg-gray-100 shadow-lg">
+                <Button size="lg" className="h-14 px-8 text-base rounded-full bg-white text-blue-600 hover:bg-gray-50 shadow-xl font-semibold">
                   Espace Professionnel
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
@@ -549,8 +518,7 @@ export default function HomePage() {
               <Link href="/pro">
                 <Button 
                   size="lg" 
-                  variant="outline" 
-                  className="h-14 px-8 text-base rounded-full border-2 border-white text-white hover:bg-white/10"
+                  className="h-14 px-8 text-base rounded-full bg-transparent border-2 border-white text-white hover:bg-white/20 font-semibold"
                 >
                   En savoir plus
                 </Button>
@@ -559,6 +527,97 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-12 md:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-8 md:mb-12">
+            {/* Logo & Description */}
+            <div className="col-span-2 md:col-span-1">
+              <Link href="/" className="text-2xl font-bold text-blue-600 mb-4 inline-block">
+                Simpl.
+              </Link>
+              <p className="text-sm text-gray-600">
+                La plateforme qui simplifie votre recherche de coach sportif.
+              </p>
+            </div>
+
+            {/* Liens */}
+            <div>
+              <h3 className="font-semibold text-slate-900 mb-4">Pour les clients</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Rechercher un coach
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/my-bookings" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Mes réservations
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/account" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Mon compte
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Professionnels */}
+            <div>
+              <h3 className="font-semibold text-slate-900 mb-4">Professionnels</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/pro" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Espace Pro
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/login" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Connexion
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h3 className="font-semibold text-slate-900 mb-4">Support</h3>
+              <ul className="space-y-2">
+                <li>
+                  <a href="mailto:contact@simpl.fr" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <Link href="/pro" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                    Devenir partenaire
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="pt-8 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-600">
+              © {new Date().getFullYear()} Simpl. Tous droits réservés.
+            </p>
+            <div className="flex gap-6">
+              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                Mentions légales
+              </Link>
+              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                Confidentialité
+              </Link>
+              <Link href="#" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                CGU
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
 
       {/* Auth Dialog */}
       <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />

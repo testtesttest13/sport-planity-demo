@@ -126,10 +126,16 @@ export default function AccountPage() {
   const displayEmail = profile?.email || user.email || ''
 
   // Check if onboarding is incomplete
-  const isOnboardingIncomplete = !profile?.full_name || 
+  const isOnboardingIncomplete = !profile || 
+    !profile.full_name || 
     profile.full_name === user.email || 
     profile.full_name.includes('@') ||
-    !profile?.role
+    !profile.role
+
+  // Debug log
+  console.log('Profile data:', profile)
+  console.log('User email:', user.email)
+  console.log('Is onboarding incomplete?', isOnboardingIncomplete)
 
   return (
     <div className="min-h-screen bg-white pb-24">

@@ -15,13 +15,23 @@ interface CoachCardProps {
 }
 
 export function CoachCard({ coach, onBook, className }: CoachCardProps) {
+  const handleCardClick = () => {
+    onBook(coach)
+  }
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click when clicking button
+    onBook(coach)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      onClick={handleCardClick}
       className={cn(
-        'group overflow-hidden rounded-xl bg-white shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300',
+        'group overflow-hidden rounded-xl bg-white shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer',
         className
       )}
     >
@@ -76,7 +86,7 @@ export function CoachCard({ coach, onBook, className }: CoachCardProps) {
             </div>
             
             <Button
-              onClick={() => onBook(coach)}
+              onClick={handleButtonClick}
               size="sm"
               className="rounded-full px-4 text-xs h-8 active:scale-95 transition-transform flex-shrink-0"
             >

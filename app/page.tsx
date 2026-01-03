@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, User, Star, LogIn, ArrowRight, Briefcase } from 'lucide-react'
+import { Search, MapPin, User, Star, LogIn, ArrowRight, Briefcase, Check, Users, Clock, Shield, Sparkles } from 'lucide-react'
 import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -181,21 +181,37 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section for non-authenticated users */}
-        {!user && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-              Réservez votre coach
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Trouvez les meilleurs coachs sportifs près de chez vous et réservez en quelques clics.
-            </p>
-          </motion.div>
-        )}
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12 md:mb-16"
+        >
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 md:mb-6 leading-tight">
+            Réservez votre coach sportif
+            <br />
+            <span className="text-blue-600">en quelques clics</span>
+          </h1>
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8 md:mb-12">
+            Trouvez les meilleurs coachs près de chez vous. Tennis, Fitness, Yoga, Boxe... Réservez votre séance en toute simplicité.
+          </p>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-6 md:gap-8 max-w-2xl mx-auto mb-8">
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">500+</div>
+              <div className="text-sm md:text-base text-gray-600">Coachs certifiés</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">10k+</div>
+              <div className="text-sm md:text-base text-gray-600">Réservations</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">4.8/5</div>
+              <div className="text-sm md:text-base text-gray-600">Satisfaction</div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Search Pill */}
         <div className="flex justify-center mb-8">
@@ -380,34 +396,169 @@ export default function HomePage() {
             </p>
           </div>
         )}
+
+        {/* Pourquoi choisir Simpl. ? */}
+        {!user && (
+          <section className="py-16 md:py-24 border-t border-gray-200 mt-16 md:mt-24">
+            <div className="text-center mb-12 md:mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                Pourquoi choisir Simpl. ?
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                La plateforme qui simplifie votre recherche de coach sportif
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  Recherche facile
+                </h3>
+                <p className="text-gray-600">
+                  Trouvez le coach parfait près de chez vous en quelques clics. Filtrez par sport, disponibilité et tarifs.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  Réservation instantanée
+                </h3>
+                <p className="text-gray-600">
+                  Réservez votre créneau en temps réel. Consultez les disponibilités et confirmez votre séance immédiatement.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  Coachs certifiés
+                </h3>
+                <p className="text-gray-600">
+                  Tous nos coachs sont vérifiés et certifiés. Choisissez en toute confiance avec nos avis clients authentiques.
+                </p>
+              </motion.div>
+            </div>
+          </section>
+        )}
+
+        {/* Témoignages */}
+        {!user && (
+          <section className="py-16 md:py-24 bg-gradient-to-br from-slate-50 to-blue-50 border-t border-gray-200">
+            <div className="text-center mb-12 md:mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                Ce que disent nos clients
+              </h2>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  name: 'Sophie M.',
+                  text: 'Enfin une app qui simplifie vraiment la réservation de cours ! J\'adore pouvoir voir les disponibilités en temps réel.',
+                  rating: 5,
+                },
+                {
+                  name: 'Thomas L.',
+                  text: 'J\'ai trouvé mon coach de tennis en 5 minutes. L\'interface est intuitive et les coachs sont de qualité.',
+                  rating: 5,
+                },
+                {
+                  name: 'Marie D.',
+                  text: 'Plus besoin de passer des heures à chercher un coach. Simpl. a tout rendu si facile !',
+                  rating: 5,
+                },
+                {
+                  name: 'Alexandre P.',
+                  text: 'Service client réactif et coachs sérieux. Je recommande à 100% pour tous les sportifs.',
+                  rating: 5,
+                },
+              ].map((testimonial, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                >
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 mb-4 text-sm leading-relaxed">
+                    &quot;{testimonial.text}&quot;
+                  </p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {testimonial.name}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Pro Section */}
-      <section className="bg-gradient-to-br from-slate-50 to-blue-50 py-16 sm:py-20 border-t border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-gray-100"
-            >
-              <div className="text-center max-w-2xl mx-auto">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                  Vous êtes Coach ou Gérant de Club ?
-                </h2>
-                <p className="text-lg text-slate-600 mb-8">
-                  Découvrez comment Simpl. révolutionne votre quotidien.
-                </p>
-                <Link href="/pro">
-                  <Button size="lg" className="h-12 px-8 text-base rounded-full">
-                    Espace Professionnel
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+      <section className="bg-gradient-to-br from-blue-600 to-indigo-700 py-16 sm:py-20 border-t border-gray-200 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-3xl mx-auto"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6">
+              Vous êtes Coach ou Gérant de Club ?
+            </h2>
+            <p className="text-lg md:text-xl text-blue-100 mb-8 md:mb-12">
+              Rejoignez des centaines de professionnels qui font confiance à Simpl. pour gérer leurs réservations.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/pro">
+                <Button size="lg" className="h-14 px-8 text-base rounded-full bg-white text-blue-600 hover:bg-gray-100 shadow-lg">
+                  Espace Professionnel
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link href="/pro">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="h-14 px-8 text-base rounded-full border-2 border-white text-white hover:bg-white/10"
+                >
+                  En savoir plus
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Auth Dialog */}
       <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />

@@ -28,9 +28,12 @@ export async function GET(request: Request) {
   }
 
   const cookieStore = cookies()
-  const response = NextResponse.redirect(`${origin}/onboarding`)
 
   try {
+    // Create a response that we'll update with redirect URL
+    let redirectUrl = `${origin}/onboarding`
+    const response = NextResponse.redirect(redirectUrl)
+    
     // Create Supabase client with proper cookie handling for callback
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -62,7 +65,12 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/login?error=no_user`)
     }
 
-    console.log('User authenticated:', data.user.id)
+    if (!data.session) {
+      console.error('No session after exchange')
+      return NextResponse.redirect(`${origin}/login?error=no_session`)
+    }
+
+    console.log('User authenticated:', data.user.id, 'Session:', !!data.session)
 
     // Check if user has completed onboarding
     const { data: profile, error: profileError } = await supabase
@@ -74,23 +82,24 @@ export async function GET(request: Request) {
     console.log('Profile:', profile)
     console.log('Profile error:', profileError)
 
+    // Determine redirect URL
     if (profileError || !profile) {
       console.log('No profile found, redirecting to onboarding')
-      return NextResponse.redirect(`${origin}/onboarding`)
-    }
-
-    // If no full_name or it's just the email, redirect to onboarding
-    if (!profile.full_name || profile.full_name === data.user.email || profile.full_name.includes('@')) {
+      redirectUrl = `${origin}/onboarding`
+    } else if (!profile.full_name || profile.full_name === data.user.email || profile.full_name.includes('@')) {
       console.log('Profile incomplete, redirecting to onboarding')
-      return NextResponse.redirect(`${origin}/onboarding`)
+      redirectUrl = `${origin}/onboarding`
+    } else {
+      // Profile is complete, redirect based on role
+      const role = profile.role || 'client'
+      console.log('Redirecting based on role:', role)
+      redirectUrl = role === 'admin' ? `${origin}/admin` : role === 'coach' ? `${origin}/coach` : `${origin}`
     }
 
-    const role = profile.role || 'client'
-    console.log('Redirecting based on role:', role)
-
-    // Redirect based on role
-    const finalUrl = role === 'admin' ? `${origin}/admin` : role === 'coach' ? `${origin}/coach` : origin
-    return NextResponse.redirect(finalUrl)
+    // Update the response with the correct redirect URL
+    return NextResponse.redirect(redirectUrl, {
+      headers: response.headers,
+    })
     
   } catch (err) {
     console.error('Callback unexpected error:', err)

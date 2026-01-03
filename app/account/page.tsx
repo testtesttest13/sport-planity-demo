@@ -82,7 +82,7 @@ export default function AccountPage() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, email, phone, avatar_url, sport, discovery_source, role, club_id')
+        .select('full_name, email, phone, avatar_url, sport, sport_level, city, role, club_id')
         .eq('id', user.id)
         .single()
 
@@ -105,7 +105,8 @@ export default function AccountPage() {
           phone: data?.phone || null,
           avatar_url: data?.avatar_url || null,
           sport: data?.sport || null,
-          discovery_source: data?.discovery_source || null,
+          sport_level: data?.sport_level || null,
+          city: data?.city || null,
           role: data?.role || null,
           club_id: data?.club_id || null,
           club_name: clubName,

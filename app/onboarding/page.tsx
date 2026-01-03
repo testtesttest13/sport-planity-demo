@@ -43,12 +43,6 @@ const sports = [
   { id: 'fitness', label: 'Fitness', icon: '💪' },
 ]
 
-const discoverySources = [
-  { id: 'google', label: 'Google', icon: '🔍' },
-  { id: 'amis', label: 'Amis', icon: '👥' },
-  { id: 'pub', label: 'Publicité', icon: '📢' },
-  { id: 'autre', label: 'Autre', icon: '💭' },
-]
 
 const amenitiesList = [
   { id: 'wifi', label: 'Wifi', icon: '📶' },
@@ -207,7 +201,9 @@ export default function OnboardingPage() {
       .update({
         full_name: `${firstName} ${lastName}`.trim(),
         sport: selectedSport,
-        discovery_source: discoverySource,
+        sport_level: sportLevel,
+        city: city || null,
+        phone: phone || null,
         role: 'client',
       })
       .eq('id', user.id)
@@ -548,7 +544,7 @@ export default function OnboardingPage() {
                         <ChevronLeft className="w-5 h-5 mr-2" /> Retour
                       </Button>
                       <Button
-                        onClick={() => setClientStep('discovery')}
+                        onClick={() => setClientStep('level')}
                         disabled={!selectedSport}
                         className="flex-1 bg-blue-600 hover:bg-blue-700"
                       >
@@ -558,31 +554,33 @@ export default function OnboardingPage() {
                   </motion.div>
                 )}
 
-                {/* Discovery */}
-                {clientStep === 'discovery' && (
+                {/* Level */}
+                {clientStep === 'level' && selectedSport && (
                   <motion.div
-                    key="discovery"
+                    key="level"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                   >
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2 text-center">Comment nous avez-vous connu ?</h2>
-                    <p className="text-gray-600 text-sm text-center mb-6">Aidez-nous à améliorer</p>
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2 text-center">Votre niveau</h2>
+                    <p className="text-gray-600 text-sm text-center mb-6">Quel est votre niveau en {sports.find(s => s.id === selectedSport)?.label.toLowerCase()} ?</p>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      {discoverySources.map((source) => (
+                    <div className="space-y-3">
+                      {sportLevels[selectedSport]?.map((level, index) => (
                         <button
-                          key={source.id}
-                          onClick={() => setDiscoverySource(source.id)}
-                          className={`p-4 rounded-2xl border-2 transition-all ${
-                            discoverySource === source.id
+                          key={index}
+                          onClick={() => setSportLevel(getLevelValue(selectedSport, index))}
+                          className={`w-full p-4 rounded-2xl border-2 text-left transition-all ${
+                            sportLevel === getLevelValue(selectedSport, index)
                               ? 'border-blue-600 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
-                          <div className="text-2xl mb-2">{source.icon}</div>
-                          <div className={`text-sm font-medium ${discoverySource === source.id ? 'text-blue-600' : 'text-slate-700'}`}>
-                            {source.label}
+                          <div className={`text-sm font-semibold mb-1 ${sportLevel === getLevelValue(selectedSport, index) ? 'text-blue-600' : 'text-slate-900'}`}>
+                            {level.label}
+                          </div>
+                          <div className={`text-xs ${sportLevel === getLevelValue(selectedSport, index) ? 'text-blue-600' : 'text-gray-600'}`}>
+                            {level.description}
                           </div>
                         </button>
                       ))}
@@ -593,8 +591,47 @@ export default function OnboardingPage() {
                         <ChevronLeft className="w-5 h-5 mr-2" /> Retour
                       </Button>
                       <Button
+                        onClick={() => setClientStep('city')}
+                        disabled={sportLevel === null}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      >
+                        Continuer <ChevronRight className="w-5 h-5 ml-2" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* City */}
+                {clientStep === 'city' && (
+                  <motion.div
+                    key="city"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                  >
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2 text-center">Votre ville</h2>
+                    <p className="text-gray-600 text-sm text-center mb-6">Où souhaitez-vous pratiquer ?</p>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Ville</label>
+                        <input
+                          type="text"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="Paris"
+                          className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-600 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                      <Button variant="outline" onClick={() => setClientStep('level')} className="flex-1">
+                        <ChevronLeft className="w-5 h-5 mr-2" /> Retour
+                      </Button>
+                      <Button
                         onClick={saveClientProfile}
-                        disabled={!discoverySource || saving}
+                        disabled={!city.trim() || saving}
                         className="flex-1 bg-blue-600 hover:bg-blue-700"
                       >
                         {saving ? 'Enregistrement...' : 'Terminer'}

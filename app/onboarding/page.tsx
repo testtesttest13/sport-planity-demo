@@ -108,6 +108,19 @@ export default function OnboardingPage() {
   // Common state
   const [saving, setSaving] = useState(false)
 
+  // Read role from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const roleParam = params.get('role')
+    if (roleParam && (roleParam === 'coach' || roleParam === 'admin' || roleParam === 'client')) {
+      setSelectedRole(roleParam as UserRole)
+      // Clean URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('role')
+      window.history.replaceState({}, '', url.pathname)
+    }
+  }, [])
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')

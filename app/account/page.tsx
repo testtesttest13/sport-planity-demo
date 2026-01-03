@@ -279,7 +279,7 @@ export default function AccountPage() {
           </Card>
         </motion.div>
 
-        {/* Onboarding Button (if incomplete) */}
+        {/* Complete Profile Button (if onboarding incomplete) */}
         {isOnboardingIncomplete && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -288,10 +288,11 @@ export default function AccountPage() {
             className="mb-6"
           >
             <Link href="/onboarding">
-              <Button className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base font-semibold shadow-lg">
+              <Button className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-base font-semibold shadow-lg">
                 <span className="flex items-center justify-between w-full">
                   <span className="flex items-center gap-2">
-                    Parlez-nous de vous
+                    Compléter mon profil
+                    <span className="text-sm font-normal opacity-90">(en 30 secondes)</span>
                   </span>
                   <ArrowRight className="w-5 h-5" />
                 </span>

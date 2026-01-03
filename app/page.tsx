@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, User, Star, LogIn } from 'lucide-react'
+import { Search, MapPin, User, Star, LogIn, ArrowRight } from 'lucide-react'
 import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -279,6 +279,35 @@ export default function HomePage() {
           </div>
         )}
       </main>
+
+      {/* Pro Section */}
+      {!user && (
+        <section className="bg-gradient-to-br from-slate-50 to-blue-50 py-16 sm:py-20 border-t border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-gray-100"
+            >
+              <div className="text-center max-w-2xl mx-auto">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                  Vous êtes Coach ou Gérant de Club ?
+                </h2>
+                <p className="text-lg text-slate-600 mb-8">
+                  Découvrez comment Simpl. révolutionne votre quotidien.
+                </p>
+                <Link href="/pro">
+                  <Button size="lg" className="h-12 px-8 text-base rounded-full">
+                    Espace Professionnel
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Help Guide */}
       <HelpGuide />

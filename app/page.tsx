@@ -280,8 +280,7 @@ export default function HomePage() {
       </main>
 
       {/* Pro Section */}
-      {!user && (
-        <section className="bg-gradient-to-br from-slate-50 to-blue-50 py-16 sm:py-20 border-t border-gray-200">
+      <section className="bg-gradient-to-br from-slate-50 to-blue-50 py-16 sm:py-20 border-t border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -306,7 +305,6 @@ export default function HomePage() {
             </motion.div>
           </div>
         </section>
-      )}
 
       {/* Auth Dialog */}
       <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />

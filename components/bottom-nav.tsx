@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Search, Calendar, Inbox, User, Home, LogIn, Settings } from 'lucide-react'
+import { Search, Calendar, Inbox, User, Home, LogIn, Settings, UserPlus } from 'lucide-react'
 import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
@@ -13,25 +13,34 @@ export function BottomNav() {
   const { user } = useAuth()
   const supabase = createClient()
   const [userRole, setUserRole] = useState<string>('client')
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean>(true)
 
-  // Fetch user role from profiles table
+  // Fetch user role and onboarding status from profiles table
   useEffect(() => {
     async function fetchUserRole() {
       if (!user) {
         setUserRole('client')
+        setIsOnboardingComplete(true)
         return
       }
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, full_name')
         .eq('id', user.id)
         .single()
 
       if (profile) {
         setUserRole(profile.role || 'client')
+        // Check if onboarding is complete
+        const complete = profile.full_name && 
+          profile.full_name !== user.email && 
+          !profile.full_name.includes('@') &&
+          profile.role
+        setIsOnboardingComplete(!!complete)
       } else {
         setUserRole('client')
+        setIsOnboardingComplete(false)
       }
     }
 
@@ -47,6 +56,11 @@ export function BottomNav() {
     { href: '/my-bookings', icon: Inbox, label: 'Mes cours' },
     { href: '/account', icon: User, label: 'Compte' },
   ]
+
+  // If onboarding incomplete, replace last item with onboarding button
+  if (!isOnboardingComplete) {
+    clientNav[clientNav.length - 1] = { href: '/onboarding', icon: UserPlus, label: 'Compléter' }
+  }
 
   // Coach navigation - "Gestion" instead of "Planning"
   const coachNav = [

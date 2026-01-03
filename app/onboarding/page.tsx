@@ -26,10 +26,11 @@ import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/providers/auth-provider'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { sportLevels, getLevelValue } from './sport-levels'
 
 // Types
 type UserRole = 'client' | 'coach' | 'admin' | null
-type ClientStep = 'identity' | 'sport' | 'discovery' | 'success'
+type ClientStep = 'identity' | 'sport' | 'level' | 'city' | 'success'
 type CoachStep = 'code' | 'confirm' | 'success'
 type AdminStep = 'identity' | 'club-info' | 'amenities' | 'showcase' | 'success'
 
@@ -82,23 +83,27 @@ export default function OnboardingPage() {
   const [clientStep, setClientStep] = useState<ClientStep>('identity')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
   const [selectedSport, setSelectedSport] = useState<string | null>(null)
-  const [discoverySource, setDiscoverySource] = useState<string | null>(null)
+  const [sportLevel, setSportLevel] = useState<number | null>(null)
+  const [city, setCity] = useState('')
 
   // Coach flow state
   const [coachStep, setCoachStep] = useState<CoachStep>('code')
   const [joinCode, setJoinCode] = useState(['', '', '', '', ''])
   const [foundClub, setFoundClub] = useState<{ id: string; name: string } | null>(null)
   const [codeError, setCodeError] = useState(false)
+  const [coachPhone, setCoachPhone] = useState('')
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Admin flow state
   const [adminStep, setAdminStep] = useState<AdminStep>('identity')
+  const [adminPhone, setAdminPhone] = useState('')
   const [clubName, setClubName] = useState('')
   const [siret, setSiret] = useState('')
   const [address, setAddress] = useState('')
   const [zipCode, setZipCode] = useState('')
-  const [city, setCity] = useState('')
+  const [adminCity, setAdminCity] = useState('')
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([])
   const [clubDescription, setClubDescription] = useState('')
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -227,6 +232,7 @@ export default function OnboardingPage() {
       .update({
         role: 'coach',
         club_id: foundClub.id,
+        phone: coachPhone || null,
       })
       .eq('id', user.id)
 
@@ -291,7 +297,7 @@ export default function OnboardingPage() {
           siret: siret || null,
           address: address,
           zip_code: zipCode,
-          city: city,
+          city: adminCity,
           description: clubDescription || null,
           amenities: selectedAmenities,
           cover_url: coverUrl,
@@ -316,6 +322,7 @@ export default function OnboardingPage() {
           full_name: `${firstName} ${lastName}`.trim(),
           role: 'admin',
           club_id: clubData.id,
+          phone: adminPhone || null,
         })
         .eq('id', user.id)
 
@@ -431,7 +438,7 @@ export default function OnboardingPage() {
 
   // ============= CLIENT FLOW =============
   if (selectedRole === 'client') {
-    const clientSteps: ClientStep[] = ['identity', 'sport', 'discovery', 'success']
+    const clientSteps: ClientStep[] = ['identity', 'sport', 'level', 'city', 'success']
     const currentIndex = clientSteps.indexOf(clientStep)
     const progress = ((currentIndex + 1) / clientSteps.length) * 100
 
@@ -479,6 +486,18 @@ export default function OnboardingPage() {
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
                           placeholder="Durand"
+                          className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-600 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          Téléphone <span className="text-gray-400 font-normal text-xs">(facultatif)</span>
+                        </label>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="06 12 34 56 78"
                           className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-blue-600 outline-none"
                         />
                       </div>
@@ -699,6 +718,19 @@ export default function OnboardingPage() {
                       <p className="text-xl font-bold text-slate-900">{foundClub.name}</p>
                     </div>
 
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Téléphone <span className="text-gray-400 font-normal text-xs">(facultatif)</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={coachPhone}
+                        onChange={(e) => setCoachPhone(e.target.value)}
+                        placeholder="06 12 34 56 78"
+                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-green-600 outline-none"
+                      />
+                    </div>
+
                     <div className="flex gap-3">
                       <Button
                         variant="outline"
@@ -803,6 +835,13 @@ export default function OnboardingPage() {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="Nom"
+                        className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-purple-600 outline-none"
+                      />
+                      <input
+                        type="tel"
+                        value={adminPhone}
+                        onChange={(e) => setAdminPhone(e.target.value)}
+                        placeholder="Téléphone (facultatif)"
                         className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-purple-600 outline-none"
                       />
                     </div>

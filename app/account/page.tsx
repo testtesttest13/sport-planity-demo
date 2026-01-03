@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, Mail, Phone, Edit, LogOut, Building2, ArrowRight, AlertCircle, Briefcase, X, AlertTriangle } from 'lucide-react'
+import { User, Mail, Phone, Edit, LogOut, Building2, ArrowRight, AlertCircle, Briefcase, X, AlertTriangle, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -27,7 +27,8 @@ interface Profile {
   phone: string | null
   avatar_url: string | null
   sport: string | null
-  discovery_source: string | null
+  sport_level: number | null
+  city: string | null
   role: string | null
   club_id: string | null
   club_name: string | null
@@ -41,11 +42,17 @@ const sportLabels: Record<string, string> = {
   fitness: '💪 Fitness',
 }
 
-const discoveryLabels: Record<string, string> = {
-  google: '🔍 Google',
-  amis: '👥 Amis',
-  pub: '📢 Publicité',
-  autre: '💭 Autre',
+const levelLabels: Record<number, string> = {
+  1: 'Débutant',
+  2: 'Débutant',
+  3: 'Débutant',
+  4: 'Intermédiaire',
+  5: 'Intermédiaire',
+  6: 'Intermédiaire',
+  7: 'Avancé',
+  8: 'Avancé',
+  9: 'Expert',
+  10: 'Expert',
 }
 
 export default function AccountPage() {
@@ -280,20 +287,35 @@ export default function AccountPage() {
                 )
               )}
 
-              {/* Discovery Source */}
-              {profile?.discovery_source && (
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">
-                      {discoveryLabels[profile?.discovery_source || '']?.split(' ')[0] || '💭'}
-                    </span>
+              {/* City (for clients) */}
+              {profile?.role === 'client' && profile?.city && (
+                <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-gray-500 uppercase font-medium mb-1">
-                      Comment avez-vous connu Simpl. ?
+                      Ville
                     </p>
                     <p className="text-sm font-medium text-slate-900">
-                      {discoveryLabels[profile?.discovery_source || ''] || profile?.discovery_source}
+                      {profile.city}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Sport Level (for clients) */}
+              {profile?.role === 'client' && profile?.sport_level && (
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg">⭐</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">
+                      Niveau {sportLabels[profile?.sport || '']?.split(' ')[1] || ''}
+                    </p>
+                    <p className="text-sm font-medium text-slate-900">
+                      {levelLabels[profile.sport_level] || 'Non défini'} ({profile.sport_level}/10)
                     </p>
                   </div>
                 </div>

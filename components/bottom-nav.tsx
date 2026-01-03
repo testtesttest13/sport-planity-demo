@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Search, Calendar, Inbox, User, Home, LogIn, Settings, UserPlus } from 'lucide-react'
+import { Search, Calendar, Inbox, User, Home, LogIn, Settings, UserPlus, Briefcase } from 'lucide-react'
 import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
@@ -54,6 +54,7 @@ export function BottomNav() {
   const clientNav = [
     { href: '/', icon: Search, label: 'Rechercher' },
     { href: '/my-bookings', icon: Inbox, label: 'Mes cours' },
+    { href: '/pro', icon: Briefcase, label: 'Devenir pro' },
     { href: '/account', icon: User, label: 'Compte' },
   ]
 

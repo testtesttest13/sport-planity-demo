@@ -6,10 +6,17 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, Mail, Phone, Edit, LogOut, Building2, ArrowRight } from 'lucide-react'
+import { User, Mail, Phone, Edit, LogOut, Building2, ArrowRight, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
@@ -47,6 +54,7 @@ export default function AccountPage() {
   const supabase = createClient()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [emailConfirmDialogOpen, setEmailConfirmDialogOpen] = useState(false)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -132,10 +140,8 @@ export default function AccountPage() {
     profile.full_name.includes('@') ||
     !profile.role
 
-  // Debug log
-  console.log('Profile data:', profile)
-  console.log('User email:', user.email)
-  console.log('Is onboarding incomplete?', isOnboardingIncomplete)
+  // Check if email is verified
+  const isEmailVerified = user?.email_confirmed_at !== null && user?.email_confirmed_at !== undefined
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -181,6 +187,12 @@ export default function AccountPage() {
           <h2 className="text-2xl font-bold text-slate-900 mb-1">{displayName}</h2>
           {displayEmail && (
             <p className="text-gray-600 text-sm">{displayEmail}</p>
+          )}
+          {!isEmailVerified && (
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <AlertCircle className="w-4 h-4 text-red-500" />
+              <span className="text-sm font-medium text-red-600">Profil : Non vérifié</span>
+            </div>
           )}
         </motion.div>
 
@@ -293,17 +305,24 @@ export default function AccountPage() {
             transition={{ delay: 0.15 }}
             className="mb-6"
           >
-            <Link href="/onboarding">
-              <Button className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-base font-semibold shadow-lg">
-                <span className="flex items-center justify-between w-full">
-                  <span className="flex items-center gap-2">
-                    Compléter mon profil
-                    <span className="text-sm font-normal opacity-90">(en 30 secondes)</span>
-                  </span>
-                  <ArrowRight className="w-5 h-5" />
+            <Button
+              onClick={() => {
+                if (!isEmailVerified) {
+                  setEmailConfirmDialogOpen(true)
+                } else {
+                  router.push('/onboarding')
+                }
+              }}
+              className="w-full h-14 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-base font-semibold shadow-lg"
+            >
+              <span className="flex items-center justify-between w-full">
+                <span className="flex items-center gap-2">
+                  Compléter mon profil
+                  <span className="text-sm font-normal opacity-90">(en 30 secondes)</span>
                 </span>
-              </Button>
-            </Link>
+                <ArrowRight className="w-5 h-5" />
+              </span>
+            </Button>
           </motion.div>
         )}
 
@@ -338,6 +357,44 @@ export default function AccountPage() {
           </Button>
         </motion.div>
       </div>
+
+      {/* Email Confirmation Dialog */}
+      <Dialog open={emailConfirmDialogOpen} onOpenChange={setEmailConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmer votre email</DialogTitle>
+            <DialogDescription>
+              Veuillez confirmer votre adresse email pour continuer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600 mb-4">
+              Confirmer à ce mail : <strong className="text-slate-900">{displayEmail}</strong>
+            </p>
+            <p className="text-sm text-gray-500">
+              Vérifiez votre boîte de réception et cliquez sur le lien de confirmation dans l&apos;email que nous vous avons envoyé.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setEmailConfirmDialogOpen(false)}
+              className="flex-1"
+            >
+              Fermer
+            </Button>
+            <Button
+              onClick={() => {
+                setEmailConfirmDialogOpen(false)
+                router.push('/onboarding')
+              }}
+              className="flex-1"
+            >
+              Continuer quand même
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -85,17 +85,19 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
         toast.error('Erreur', {
           description: error.message,
         })
+        setLoading(false)
       } else if (data.user) {
+        // Always connect the user even if email is not confirmed
         if (data.session) {
           onOpenChange(false)
           router.push('/onboarding')
         } else {
-          toast.success('Compte créé !', {
-            description: 'Vérifiez votre email pour confirmer votre inscription.',
-          })
+          // If no session, try to get session or redirect anyway
           onOpenChange(false)
+          router.push('/onboarding')
         }
       }
+      setLoading(false)
     } else {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

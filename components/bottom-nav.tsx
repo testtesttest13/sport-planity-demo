@@ -38,27 +38,8 @@ export function BottomNav() {
     fetchUserRole()
   }, [user, supabase])
 
-  // Don't show on login/onboarding pages
-  if (pathname === '/login' || pathname === '/onboarding') return null
-
-  // If not logged in, show login/signup nav
-  if (!user) {
-    return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-bottom">
-        <div className="max-w-lg mx-auto px-2">
-          <div className="flex items-center justify-around h-16">
-            <Link
-              href="/login"
-              className="flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-xl transition-all active:scale-95 min-w-[100px] text-blue-600"
-            >
-              <LogIn className="w-6 h-6 stroke-[2.5px]" />
-              <span className="text-xs font-semibold">Connexion</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-    )
-  }
+  // Don't show on login/onboarding pages or when not logged in
+  if (pathname === '/login' || pathname === '/onboarding' || !user) return null
 
   // Client navigation
   const clientNav = [

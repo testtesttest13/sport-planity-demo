@@ -21,63 +21,68 @@ export function CoachCard({ coach, onBook, className }: CoachCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        'group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg border border-gray-100 hover:shadow-2xl transition-shadow duration-300',
+        'group overflow-hidden rounded-xl bg-white shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300',
         className
       )}
     >
-      {/* Coach Image */}
-      <div className="relative aspect-[4/5] overflow-hidden">
-        <Image
-          src={coach.photoUrl}
-          alt={coach.name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-        />
-        
-        {/* Rating Badge Overlay - Smaller on mobile */}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex items-center gap-0.5 sm:gap-1 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-sm shadow-lg">
-          <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-xs sm:text-sm font-bold">{coach.rating}</span>
-          <span className="text-[10px] sm:text-xs text-gray-500 hidden sm:inline">({coach.reviewCount})</span>
-        </div>
-      </div>
-
-      {/* Card Content - Better mobile spacing */}
-      <div className="p-3 sm:p-4 md:p-5 space-y-2 sm:space-y-3">
-        {/* Name & Age */}
-        <div>
-          <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 line-clamp-1">{coach.name}</h3>
-          <p className="text-xs sm:text-sm text-gray-500">{coach.age} ans</p>
+      {/* Compact Layout: Image + Content side by side on larger screens */}
+      <div className="flex flex-col sm:flex-row">
+        {/* Coach Image - Smaller, more compact */}
+        <div className="relative w-full sm:w-24 sm:h-24 h-48 sm:h-auto flex-shrink-0 overflow-hidden bg-gray-100">
+          <Image
+            src={coach.photoUrl}
+            alt={coach.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, 96px"
+          />
         </div>
 
-        {/* Speciality Badge */}
-        <Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 text-xs">
-          {coach.speciality}
-        </Badge>
+        {/* Card Content */}
+        <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between min-w-0">
+          <div className="space-y-2">
+            {/* Name & Rating */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-gray-900 line-clamp-1">{coach.name}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{coach.age} ans</p>
+              </div>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/90 border border-gray-200 flex-shrink-0">
+                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                <span className="text-xs font-semibold">{coach.rating}</span>
+              </div>
+            </div>
 
-        {/* Bio - Better line clamp */}
-        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
-          {coach.bio}
-        </p>
+            {/* Speciality Badge */}
+            <Badge className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0 text-xs w-fit">
+              {coach.speciality}
+            </Badge>
 
-        {/* Footer: Price + Button - Better mobile layout */}
-        <div className="flex items-center justify-between pt-1 sm:pt-2 gap-2">
-          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
-            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
-            <span className="text-base sm:text-lg font-bold text-gray-900 whitespace-nowrap">
-              {coach.hourlyRate}€
-            </span>
-            <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap hidden sm:inline">/heure</span>
+            {/* Bio - Compact */}
+            {coach.bio && (
+              <p className="text-xs text-gray-600 line-clamp-2 leading-snug">
+                {coach.bio}
+              </p>
+            )}
           </div>
-          
-          <Button
-            onClick={() => onBook(coach)}
-            size="sm"
-            className="rounded-full px-3 sm:px-4 md:px-5 text-xs sm:text-sm h-8 sm:h-9 md:h-10 active:scale-95 transition-transform flex-shrink-0"
-          >
-            Réserver
-          </Button>
+
+          {/* Footer: Price + Button */}
+          <div className="flex items-center justify-between pt-2 mt-auto gap-2">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-gray-400" />
+              <span className="text-sm font-bold text-gray-900">
+                {coach.hourlyRate}€<span className="text-xs text-gray-500 font-normal">/h</span>
+              </span>
+            </div>
+            
+            <Button
+              onClick={() => onBook(coach)}
+              size="sm"
+              className="rounded-full px-4 text-xs h-8 active:scale-95 transition-transform flex-shrink-0"
+            >
+              Réserver
+            </Button>
+          </div>
         </div>
       </div>
     </motion.div>

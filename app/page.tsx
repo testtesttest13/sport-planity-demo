@@ -12,6 +12,7 @@ import { useAuth } from '@/components/providers/auth-provider'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { AuthDialog } from '@/components/auth-dialog'
+import { HelpGuide } from '@/components/help-guide'
 
 const categories = [
   { id: 'tennis', label: 'Tennis', icon: '🎾' },
@@ -278,6 +279,9 @@ export default function HomePage() {
           </div>
         )}
       </main>
+
+      {/* Help Guide */}
+      <HelpGuide />
 
       {/* Auth Dialog */}
       <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />

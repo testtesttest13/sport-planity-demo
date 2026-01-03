@@ -382,7 +382,7 @@ export default function ClubPage() {
                 <p className="text-gray-600 text-sm sm:text-base">Aucun coach disponible pour le moment.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {coaches.map((coach, idx) => (
                   <motion.div
                     key={coach.id}

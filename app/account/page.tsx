@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { User, Mail, Phone, Edit, LogOut, Building2 } from 'lucide-react'
+import { User, Mail, Phone, Edit, LogOut, Building2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -124,6 +124,12 @@ export default function AccountPage() {
   // Use profile data if available, otherwise use user email
   const displayName = profile?.full_name || user.email?.split('@')[0] || 'Utilisateur'
   const displayEmail = profile?.email || user.email || ''
+
+  // Check if onboarding is incomplete
+  const isOnboardingIncomplete = !profile?.full_name || 
+    profile.full_name === user.email || 
+    profile.full_name.includes('@') ||
+    !profile?.role
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -272,6 +278,27 @@ export default function AccountPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Onboarding Button (if incomplete) */}
+        {isOnboardingIncomplete && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <Link href="/onboarding">
+              <Button className="w-full h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-base font-semibold shadow-lg">
+                <span className="flex items-center justify-between w-full">
+                  <span className="flex items-center gap-2">
+                    Parlez-nous de vous
+                  </span>
+                  <ArrowRight className="w-5 h-5" />
+                </span>
+              </Button>
+            </Link>
+          </motion.div>
+        )}
 
         {/* Edit Button */}
         <motion.div
